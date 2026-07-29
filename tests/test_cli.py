@@ -72,8 +72,19 @@ def test_eval_rejects_an_unimplemented_diagnoser(
 ) -> None:
     main(["dataset", "--out", str(tmp_path)])
     capsys.readouterr()
-    assert main(["eval", "--data", str(tmp_path), "--diagnoser", "llm"]) == EXIT_NOT_IMPLEMENTED
+    assert main(["eval", "--data", str(tmp_path), "--diagnoser", "llm+rag"]) == EXIT_NOT_IMPLEMENTED
     assert "尚未实现" in capsys.readouterr().err
+
+
+def test_eval_with_llm_refuses_when_unconfigured(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The `isolate_llm_environment` guard makes this the only reachable outcome
+    inside the suite, which is the point: no test can spend tokens."""
+    main(["dataset", "--out", str(tmp_path)])
+    capsys.readouterr()
+    assert main(["eval", "--data", str(tmp_path), "--diagnoser", "llm"]) == EXIT_NOT_IMPLEMENTED
+    assert "LLM 未配置" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize(

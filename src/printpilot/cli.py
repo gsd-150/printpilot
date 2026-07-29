@@ -49,20 +49,63 @@ def _run_dataset(root: Path, seed: int) -> int:
     return EXIT_OK
 
 
-def _run_eval(root: Path, split_name: str, diagnoser_name: str) -> int:
+def _build_diagnoser(name: str, prompt: str | None = None) -> tuple[object, str] | None:
+    """Returns (callable, display name), or None if the configuration is unusable."""
     from printpilot.diagnosis import diagnose
+
+    if name == "rules":
+        return diagnose, "rules"
+
+    if name == "llm":
+        from printpilot.diagnosis.llm import DEFAULT_PROMPT, LLMDiagnoser
+        from printpilot.llm import OpenAICompatibleClient, load_settings
+        from printpilot.prompts import load_prompt
+
+        settings = load_settings()
+        if not settings.configured:
+            print(
+                "LLM 未配置：需要 .env 中的 OPENAI_API_KEY 与 PRINTPILOT_LLM_MODEL。",
+                file=sys.stderr,
+            )
+            return None
+        diagnoser = LLMDiagnoser(
+            client=OpenAICompatibleClient(settings=settings),
+            prompt=load_prompt(prompt or DEFAULT_PROMPT),
+        )
+        return diagnoser, f"{diagnoser.name}|{settings.model}"
+
+    print(f"诊断配置 `{name}` 尚未实现。", file=sys.stderr)
+    return None
+
+
+def _run_eval(
+    root: Path,
+    split_name: str,
+    diagnoser_name: str,
+    limit: int | None,
+    prompt: str | None = None,
+) -> int:
     from printpilot.eval import format_report, run_split
+    from printpilot.eval.runner import stderr_progress
     from printpilot.simulator import Split
 
     if not (root / split_name / "cases.jsonl").exists():
         print(f"找不到数据集：{root}/{split_name}/。先运行 `printpilot dataset`。", file=sys.stderr)
         return EXIT_NOT_IMPLEMENTED
 
-    if diagnoser_name != "rules":
-        print(f"诊断配置 `{diagnoser_name}` 尚未实现，计划在 M4 后半。", file=sys.stderr)
+    built = _build_diagnoser(diagnoser_name, prompt)
+    if built is None:
         return EXIT_NOT_IMPLEMENTED
+    diagnoser, display = built
 
-    report = run_split(root, Split(split_name), diagnose, name=diagnoser_name)
+    report = run_split(
+        root,
+        Split(split_name),
+        diagnoser,  # type: ignore[arg-type]
+        name=display,
+        limit=limit,
+        progress=stderr_progress if diagnoser_name != "rules" else None,
+    )
     print(format_report(report))
     return EXIT_OK
 
@@ -124,6 +167,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument("--split", choices=["dev", "holdout", "challenge"], default="dev")
     p_eval.add_argument("--diagnoser", default="rules", help="rules | llm | llm+rag | llm+skills")
     p_eval.add_argument("--data", type=Path, default=DEFAULT_DATASET_ROOT)
+    p_eval.add_argument(
+        "--limit", type=int, default=None, help="等距抽样 N 条，用于提示词迭代（不可与全量比较）"
+    )
+    p_eval.add_argument(
+        "--prompt", default=None, help="提示词版本，如 diagnosis/v2_rule_out（默认取基线版）"
+    )
 
     p_llm = sub.add_parser("llm-check", help="实测所配置端点的连通性与结构化输出能力")
     p_llm.add_argument("--models", action="store_true", help="打印完整可用模型列表")
@@ -144,7 +193,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         case "dataset":
             return _run_dataset(args.out, args.seed)
         case "eval":
-            return _run_eval(args.data, args.split, args.diagnoser)
+            return _run_eval(args.data, args.split, args.diagnoser, args.limit, args.prompt)
         case "llm-check":
             return _run_llm_check(args.models)
         case "skills":
