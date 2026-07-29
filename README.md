@@ -24,7 +24,7 @@
 
 ## 当前完成度
 
-**5 / 8 里程碑已验证**（由 `printpilot info` 在运行时报告，非手工维护）
+**7 / 8 里程碑已验证**（由 `printpilot info` 在运行时报告，非手工维护）
 
 | | 里程碑 | 验收标准 |
 |---|---|---|
@@ -34,7 +34,7 @@
 | ✅ | **M4** 感知层 + 规则基线 + 评测体系 + LLM 诊断节点 | `printpilot eval --split dev` 输出基线指标 |
 | ✅ | **M5** 2 个 Skill + 注册机制 + 接入诊断，dev 消融完成 | `printpilot skills validate` 能拦住坏 Skill |
 | ⬜ | M6 单向量后端 + 知识卡 + 检索评测 | Hit@k / MRR 为实测值 |
-| ⬜ | M7 Decision + SafetyGate + Execution + 一轮闭环 | `test_safety_gate.py` 全绿 |
+| ✅ | **M7** Decision + SafetyGate + Execution + 一轮闭环 | `test_safety_gate.py` 全绿；`printpilot loop` 可跑 |
 | ⬜ | M8 消融、Trace、Demo | 五档消融表填满实测值 |
 
 ### 消融结果（dev n=100 / holdout n=30，实测）
@@ -67,6 +67,16 @@
 所以 SG-6 **不读取诊断结论**，只读原始特征：电流上升即禁止参数补偿，无论上游得出什么结论。这是真实机器上安全联锁的工作方式——不询问控制器的意见，直接由传感器触发。详见 [ADR 0003](docs/decisions/0003-safety-gate.md)。
 
 必须保留的区别：**误路由率归零不等于系统判断正确，而等于系统的错误判断不再触及设备。**
+
+### 闭环
+
+```bash
+uv run printpilot loop
+```
+
+诊断 → 决策 → 门禁 → 执行 → **用新参数重新打印** → 由独立质量函数评分。同一随机种子跑两轮，因此第二轮的差异只来自参数，不来自噪声。
+
+仿真器对参数的响应是按物理写的，其中一条尤其重要：**对堵塞提高 flow 不会增加出料，只会抬高推料电流**。所以给误诊的堵塞打补丁会被量化为**造成伤害**，而不只是"没有改善"——否则做错动作和做无用功看起来一样，门禁的价值就无从测量。
 
 完整分析见 [ablation.md](evals/results/ablation.md)。**challenge 划分的 LLM 档尚未运行**，且合成数据使全部指标存在上界——本报告不支持"LLM 在此类任务上总是更差"这一更强的结论。
 
@@ -141,8 +151,6 @@ uv run ruff check . ; uv run mypy ; uv run pytest
 
 数据集还包含三类难例：`NORMAL_SUSPICIOUS` 的瞬时凹陷深度与轻度堵塞相当（须看持续时间而非深度）；challenge 集里有未见过的材料、超范围噪声；以及 10 条**移除了 `extruder_current`** 的案例——失去判别信号后，正确答案是 `UNKNOWN`，而不是猜一个。
 
-### 知识冲突优先级
-
 ### 框架只保证形状，不保证取值
 
 实测 langgraph 1.2.10：Pydantic state schema **只在 `invoke()` 入口校验，节点写回时不校验**。节点返回未知字段会被静默丢弃；返回**错误类型**会被静默接受——`flow_ratio: float` 里可以躺着一个字符串。
@@ -173,14 +181,20 @@ uv run ruff check . ; uv run mypy ; uv run pytest
 
 ```text
 src/printpilot/
-├── domain/          参数、故障目录、节点间契约
-├── llm/             LLM 边界 + 离线 mock
-├── simulator/       合成遥测与故障注入          (M3)
-├── workflow/        节点契约校验；StateGraph     (M4)
-├── skills_runtime/  Skills 注册、校验、路由      (M5)
-├── rag/             知识库构建、清洗、检索        (M6)
-├── harness/         trace / 降级 / 成本           (M7)
-└── eval/            数据集切分、指标、消融        (M4+)
+├── domain/          参数、硬件边界、工艺窗口、故障目录、节点间契约
+├── llm/             LLM 边界、OpenAI 兼容客户端、能力探针、离线 mock
+├── simulator/       故障注入、虚拟传感器、独立质量评估器
+├── perception/      确定性特征提取与 dev 标定的正常带
+├── diagnosis/       规则基线 + LLM 诊断（Skills 注入）
+├── decision/        根因 → 动作计划
+├── safety/          SafetyGate：五条一致性规则 + 证据联锁
+├── execution/       应用补丁、diff、精确回滚
+├── loop/            闭环：重打印 + 独立评分
+├── skills_runtime/  Skills 注册、校验、路由
+├── harness/         有界并发、成本核算
+├── workflow/        节点契约校验（LangGraph）
+├── eval/            指标、bootstrap、McNemar 配对、逐案例记录
+└── rag/             知识库构建、清洗、检索        (M6，未实现)
 ```
 
 设计文档见 [项目规划_v2.md](项目规划_v2.md)（v1 保留作为修订对照）。

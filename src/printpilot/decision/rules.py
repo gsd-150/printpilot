@@ -81,8 +81,11 @@ def decide(diagnosis: DiagnosisResult, report: PhenomenonReport) -> ActionPlan:
             )
 
         case FaultCode.THERMAL_DRIFT:
-            observed = report.feature("temp_deviation_tail")
-            direction = -1.0 if observed and observed.value > 0 else 1.0
+            # Uses the *signed* bias. The absolute deviation was used first, which
+            # is always positive, so the correction was always downward — wrong on
+            # every case where the hot end was running cold.
+            bias = report.feature("temp_bias_tail")
+            direction = -1.0 if bias and bias.value > 0 else 1.0
             return ActionPlan(
                 **base,
                 risk_level=RiskLevel.MEDIUM,

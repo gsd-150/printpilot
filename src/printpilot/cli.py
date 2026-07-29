@@ -165,6 +165,22 @@ def _run_compare(path_a: Path, path_b: Path) -> int:
     return EXIT_OK
 
 
+def _run_loop(seed: str) -> int:
+    from printpilot.loop import LoopOutcome, demo_families, run_round
+
+    outcomes: dict[LoopOutcome, int] = {}
+    for family in demo_families():
+        result = run_round(family, case_id=f"demo-{family.fault.value}", seed=seed)
+        print(result.summary())
+        print(f"  真实故障 {family.fault.value}")
+        print()
+        outcomes[result.outcome] = outcomes.get(result.outcome, 0) + 1
+
+    print("汇总：" + "，".join(f"{k.value} {v}" for k, v in sorted(outcomes.items())))
+    print("质量由独立评估器判定——它只看遥测，不知道注入了什么故障、也不知道改了什么。")
+    return EXIT_OK
+
+
 def _run_llm_check(show_models: bool) -> int:
     from printpilot.llm import load_settings
     from printpilot.llm.probe import format_probe, list_models, probe
@@ -306,6 +322,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_compare.add_argument("run_a", type=Path)
     p_compare.add_argument("run_b", type=Path)
 
+    p_loop = sub.add_parser("loop", help="闭环演示：诊断→决策→门禁→执行→重打印→独立评分")
+    p_loop.add_argument("--seed", default="demo", help="仿真种子，两轮共用以隔离参数效应")
+
     p_llm = sub.add_parser("llm-check", help="实测所配置端点的连通性与结构化输出能力")
     p_llm.add_argument("--models", action="store_true", help="打印完整可用模型列表")
 
@@ -338,6 +357,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         case "compare":
             return _run_compare(args.run_a, args.run_b)
+        case "loop":
+            return _run_loop(args.seed)
         case "llm-check":
             return _run_llm_check(args.models)
         case "skills":

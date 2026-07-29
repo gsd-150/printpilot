@@ -54,6 +54,11 @@ NOMINAL_BANDS: Final[dict[str, Band]] = {
     "current_mean": Band(low=0.345, high=0.356, source="NORMAL_SUSPICIOUS dev p05..p95"),
     "current_delta": Band(low=-0.012, high=0.008, source="NORMAL_SUSPICIOUS dev p05..p95"),
     "temp_deviation_tail": Band(high=0.045, source="NORMAL_SUSPICIOUS dev p95=0.0408"),
+    # Signed counterpart. The magnitude alone says a correction is needed but not
+    # which way to make it — with only the absolute deviation available, the
+    # decision layer could only ever push one direction, and did so on every case
+    # including the half where the drift ran the other way.
+    "temp_bias_tail": Band(low=-0.045, high=0.045, source="temp_deviation_tail 的带宽，双侧"),
 }
 
 FEATURE_UNITS: Final[dict[str, str]] = {
@@ -64,6 +69,7 @@ FEATURE_UNITS: Final[dict[str, str]] = {
     "current_mean": "ampere",
     "current_delta": "ampere",
     "temp_deviation_tail": "fraction_of_setpoint",
+    "temp_bias_tail": "signed_fraction_of_setpoint",
 }
 
 #: Which telemetry signal each feature needs. Used to report what could not be
@@ -76,4 +82,5 @@ FEATURE_REQUIREMENTS: Final[dict[str, str]] = {
     "current_mean": "extruder_current",
     "current_delta": "extruder_current",
     "temp_deviation_tail": "hotend_temp",
+    "temp_bias_tail": "hotend_temp",
 }

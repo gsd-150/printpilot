@@ -44,6 +44,30 @@ BASE_DUTY: Final = 0.42
 
 
 @dataclass(frozen=True)
+class PrintParams:
+    """The settings a print runs with — the loop's only lever.
+
+    ``nozzle_temp_offset`` shifts the *commanded* setpoint. The material target in
+    ``MATERIAL_SETPOINTS`` stays fixed and remains what quality is judged against,
+    so raising the setpoint to counteract a downward drift genuinely moves the
+    measured temperature back toward target rather than moving the goalposts.
+
+    Defaults reproduce the un-patched behaviour exactly, so the published dataset
+    digests are unaffected by this parameter existing.
+    """
+
+    flow_percent: float = 100.0
+    nozzle_temp_offset: float = 0.0
+
+    @property
+    def flow_scale(self) -> float:
+        return self.flow_percent / 100.0
+
+
+NOMINAL_PARAMS = PrintParams()
+
+
+@dataclass(frozen=True)
 class InjectionProfile:
     """Clean traces before sensor noise is applied."""
 
@@ -72,10 +96,24 @@ def inject(
     layer_count: int,
     material: Material,
     rng: random.Random,
+    params: PrintParams = NOMINAL_PARAMS,
 ) -> InjectionProfile:
-    """Build the clean traces for one case."""
+    """Build the clean traces for one case under the given settings.
+
+    How each fault responds to a parameter change is the physics the closed loop
+    depends on, and getting it wrong would make the loop measure nothing:
+
+    * ``UNDEREXT_PARAM`` — flow percentage scales commanded extrusion directly, so
+      raising it genuinely fixes the shortfall.
+    * ``CLOG_*`` — the restriction, not the setting, limits output. Raising flow
+      does **not** increase what comes out; it increases the force pushing against
+      the blockage. So flow stays where it was and current climbs. A loop that
+      patches a clog therefore measures *harm*, not merely a lack of improvement.
+    * ``THERMAL_DRIFT`` — a setpoint offset moves the measured temperature relative
+      to the fixed material target.
+    """
     setpoint = MATERIAL_SETPOINTS[material]["nozzle_temp"]
-    temp = _flat(setpoint, layer_count)
+    temp = _flat(setpoint + params.nozzle_temp_offset, layer_count)
     duty = _flat(BASE_DUTY, layer_count)
     onset: int | None = None
     residual: float | None = None
@@ -89,9 +127,11 @@ def inject(
             flow = _flat(1.0, onset)
             flow += _ramp(1.0, residual, min(ramp_len, layer_count - onset))
             flow += _flat(residual, layer_count - len(flow))
-            # Resistance rises as the passage narrows: current climbs while flow falls.
+            # Resistance rises as the passage narrows: current climbs while flow
+            # falls. Commanding more flow does not widen the passage — it only
+            # pushes harder against it, so the scale applies to current alone.
             gain = rng.uniform(*CLOG_CURRENT_GAIN)
-            current = [BASE_CURRENT + gain * (1.0 - f) for f in flow]
+            current = [(BASE_CURRENT + gain * (1.0 - f)) * params.flow_scale for f in flow]
 
         case FaultCode.CLOG_FULL:
             # Flow collapses within a couple of layers. Current spikes as the drive
@@ -104,15 +144,16 @@ def inject(
             current = []
             for i in range(layer_count):
                 if onset <= i < onset + 3:
-                    current.append(BASE_CURRENT * rng.uniform(2.4, 3.1))
+                    current.append(BASE_CURRENT * rng.uniform(2.4, 3.1) * params.flow_scale)
                 elif i >= onset + 3:
-                    current.append(BASE_CURRENT * rng.uniform(0.35, 0.55))
+                    current.append(BASE_CURRENT * rng.uniform(0.35, 0.55) * params.flow_scale)
                 else:
-                    current.append(BASE_CURRENT)
+                    current.append(BASE_CURRENT * params.flow_scale)
 
         case FaultCode.UNDEREXT_PARAM:
             # A setting, not an event: present from layer zero, resistance normal.
-            residual = rng.uniform(*UNDEREXT_PARAM_RESIDUAL)
+            # Flow percentage scales commanded extrusion, so raising it is the fix.
+            residual = min(1.0, rng.uniform(*UNDEREXT_PARAM_RESIDUAL) * params.flow_scale)
             flow = _flat(residual, layer_count)
             # Pushing less material takes slightly *less* force, so current sits a
             # touch below nominal. The magnitudes are close to a mild clog's; what
@@ -123,19 +164,24 @@ def inject(
         case FaultCode.THERMAL_DRIFT:
             onset = rng.randint(int(layer_count * 0.15), int(layer_count * 0.5))
             drift = rng.choice([-1.0, 1.0]) * rng.uniform(8.0, 18.0)
+            # Measured temperature tracks the *commanded* setpoint, which the offset
+            # moves; quality is judged against the fixed material target, so raising
+            # the setpoint against a downward drift is a genuine correction rather
+            # than a relocation of the goalposts.
+            commanded = setpoint + params.nozzle_temp_offset
             temp = [
-                setpoint if i < onset else setpoint + drift * min(1.0, (i - onset) / 8.0)
+                commanded if i < onset else commanded + drift * min(1.0, (i - onset) / 8.0)
                 for i in range(layer_count)
             ]
             # The heater works against the drift, so duty moves opposite to it.
             duty = [
-                BASE_DUTY if i < onset else BASE_DUTY - 0.012 * (temp[i] - setpoint)
+                BASE_DUTY if i < onset else BASE_DUTY - 0.012 * (temp[i] - commanded)
                 for i in range(layer_count)
             ]
             # Off-window temperature perturbs flow mildly, nowhere near clog levels.
-            residual = rng.uniform(0.94, 0.985)
+            residual = min(1.0, rng.uniform(0.94, 0.985) * params.flow_scale)
             flow = [1.0 if i < onset else residual for i in range(layer_count)]
-            current = _flat(BASE_CURRENT, layer_count)
+            current = _flat(BASE_CURRENT * params.flow_scale, layer_count)
 
         case FaultCode.NORMAL_SUSPICIOUS:
             # Transient dips from a filament change or geometry switch. They recover,

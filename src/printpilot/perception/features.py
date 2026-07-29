@@ -61,8 +61,12 @@ def _compute(telemetry: Telemetry) -> dict[str, float]:
     setpoint = telemetry.setpoints.get("nozzle_temp")
     if temps and setpoint:
         # Normalised by setpoint so the band means the same thing for PLA at 205 °C
-        # and ABS at 245 °C.
-        out["temp_deviation_tail"] = mean(abs(t - setpoint) for t in _tail(temps)) / setpoint
+        # and ABS at 245 °C. Both magnitude *and* sign are emitted: the magnitude
+        # says a correction is needed, the sign says which way. Publishing only the
+        # magnitude left the decision layer able to push one direction and no other.
+        tail_temps = _tail(temps)
+        out["temp_deviation_tail"] = mean(abs(t - setpoint) for t in tail_temps) / setpoint
+        out["temp_bias_tail"] = mean(t - setpoint for t in tail_temps) / setpoint
 
     return out
 

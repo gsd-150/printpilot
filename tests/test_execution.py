@@ -93,9 +93,20 @@ class TestDecision:
             for delta in decide(_diagnosis(fault), _report()).patch:
                 assert abs(delta.delta) <= HARDWARE_BOUNDS[delta.param].max_abs_delta
 
-    def test_thermal_correction_opposes_the_observed_drift(self) -> None:
-        hot = decide(_diagnosis(FaultCode.THERMAL_DRIFT), _report(temp_deviation_tail=0.06))
+    def test_thermal_correction_opposes_the_drift_in_both_directions(self) -> None:
+        """The bug this replaces: the decision read the *absolute* deviation, which
+        is always positive, so the correction was always downward — wrong on every
+        case where the hot end was running cold, which is half of them."""
+        hot = decide(
+            _diagnosis(FaultCode.THERMAL_DRIFT),
+            _report(temp_deviation_tail=0.06, temp_bias_tail=0.06),
+        )
+        cold = decide(
+            _diagnosis(FaultCode.THERMAL_DRIFT),
+            _report(temp_deviation_tail=0.06, temp_bias_tail=-0.06),
+        )
         assert hot.patch[0].delta < 0
+        assert cold.patch[0].delta > 0
 
     def test_every_plan_carries_a_rollback(self) -> None:
         for fault in FaultCode:
