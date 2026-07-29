@@ -38,9 +38,9 @@ MILESTONES: tuple[Milestone, ...] = (
     ),
     Milestone(
         id="M2",
-        title="LangGraph 官方 Demo 跑通并写笔记",
-        status=MilestoneStatus.PLANNED,
-        acceptance="docs/decisions/ 有一篇框架笔记",
+        title="LangGraph 选型验证与节点契约校验",
+        status=MilestoneStatus.VERIFIED,
+        acceptance="docs/decisions/0001 + tests/test_langgraph_smoke.py",
     ),
     Milestone(
         id="M3",

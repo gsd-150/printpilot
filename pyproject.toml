@@ -10,6 +10,9 @@ keywords = ["llm", "agent", "langgraph", "rag", "fdm", "3d-printing"]
 
 dependencies = [
     "pydantic>=2.9,<3",
+    # Pinned below 2.x on purpose: this is orchestration infrastructure and its
+    # API has churned across majors. See docs/decisions/0001-agent-framework.md.
+    "langgraph>=1.2,<2",
 ]
 
 [project.optional-dependencies]

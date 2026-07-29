@@ -24,12 +24,12 @@
 
 ## 当前完成度
 
-**1 / 8 里程碑已验证**（由 `printpilot info` 在运行时报告，非手工维护）
+**2 / 8 里程碑已验证**（由 `printpilot info` 在运行时报告，非手工维护）
 
 | | 里程碑 | 验收标准 |
 |---|---|---|
 | ✅ | **M1** 工程骨架、schemas、CI、离线 mock LLM | `ruff` + `mypy` + `pytest` 全绿 |
-| ⬜ | M2 LangGraph 官方 Demo 跑通并写笔记 | `docs/decisions/` 有一篇框架笔记 |
+| ✅ | **M2** LangGraph 选型验证与节点契约校验 | [ADR 0001](docs/decisions/0001-agent-framework.md) + `tests/test_langgraph_smoke.py` |
 | ⬜ | M3 合成仿真：5 类场景族 + 虚拟传感器 + 独立质量评估器 | `printpilot dataset` 产出 160 条 + manifest |
 | ⬜ | M4 LangGraph StateGraph + Perception + Diagnosis 基线 | `printpilot eval --split dev` 输出基线指标 |
 | ⬜ | M5 2 个 Skill + 注册/校验/路由 + 单测 | `printpilot skills validate` 能拦住坏 Skill |
@@ -95,6 +95,14 @@ uv run ruff check . ; uv run mypy ; uv run pytest
 
 因此决策输出不是参数补丁，而是含 `PAUSE_AND_INSPECT` / `MAINTENANCE_REQUIRED` / `ABORT_PRINT` / `ESCALATE_TO_HUMAN` 的五类动作，并由 `SafetyGate` 硬规则保证完全堵塞永远不会被自动调参继续打印。
 
+### 框架只保证形状，不保证取值
+
+实测 langgraph 1.2.10：Pydantic state schema **只在 `invoke()` 入口校验，节点写回时不校验**。节点返回未知字段会被静默丢弃；返回**错误类型**会被静默接受——`flow_ratio: float` 里可以躺着一个字符串。
+
+本项目主张"节点之间传经校验的结构，而不是散文"，这个缺口正好戳在主张上。因此所有节点统一经 `validating_node` 包装，把更新合并回 state 后重新校验，违规抛 `NodeContractError`。测试同时钉住了"未包装时框架确实放行"，以便将来官方补上校验时能被发现。
+
+详见 [ADR 0001](docs/decisions/0001-agent-framework.md)。
+
 ### 知识冲突优先级
 
 > 硬件安全规则 > 经审核的 Skill > 有来源的 RAG 证据 > LLM 自身知识
@@ -110,7 +118,7 @@ src/printpilot/
 ├── domain/          参数、故障目录、节点间契约
 ├── llm/             LLM 边界 + 离线 mock
 ├── simulator/       合成遥测与故障注入          (M3)
-├── workflow/        LangGraph StateGraph        (M4)
+├── workflow/        节点契约校验；StateGraph     (M4)
 ├── skills_runtime/  Skills 注册、校验、路由      (M5)
 ├── rag/             知识库构建、清洗、检索        (M6)
 ├── harness/         trace / 降级 / 成本           (M7)
