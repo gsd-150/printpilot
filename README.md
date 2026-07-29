@@ -24,20 +24,32 @@
 
 ## 当前完成度
 
-**3 / 8 里程碑已验证**（由 `printpilot info` 在运行时报告，非手工维护）
+**5 / 8 里程碑已验证**（由 `printpilot info` 在运行时报告，非手工维护）
 
 | | 里程碑 | 验收标准 |
 |---|---|---|
 | ✅ | **M1** 工程骨架、schemas、CI、离线 mock LLM | `ruff` + `mypy` + `pytest` 全绿 |
 | ✅ | **M2** LangGraph 选型验证与节点契约校验 | [ADR 0001](docs/decisions/0001-agent-framework.md) + `tests/test_langgraph_smoke.py` |
 | ✅ | **M3** 合成遥测环境：故障注入 + 虚拟传感器 + 独立质量评估器 | `printpilot dataset` 产出 160 条 + manifest |
-| ⬜ | M4 LangGraph StateGraph + Perception + Diagnosis 基线 | `printpilot eval --split dev` 输出基线指标 |
-| ⬜ | M5 2 个 Skill + 注册/校验/路由 + 单测 | `printpilot skills validate` 能拦住坏 Skill |
+| ✅ | **M4** 感知层 + 规则基线 + 评测体系 + LLM 诊断节点 | `printpilot eval --split dev` 输出基线指标 |
+| ✅ | **M5** 2 个 Skill + 注册机制 + 接入诊断，dev 消融完成 | `printpilot skills validate` 能拦住坏 Skill |
 | ⬜ | M6 单向量后端 + 知识卡 + 检索评测 | Hit@k / MRR 为实测值 |
 | ⬜ | M7 Decision + SafetyGate + Execution + 一轮闭环 | `test_safety_gate.py` 全绿 |
 | ⬜ | M8 消融、Trace、Demo | 五档消融表填满实测值 |
 
-> 指标表尚未产生任何实测数字。在里程碑标记为已验证之前，本项目不对外声称任何准确率。
+### dev 全量消融（n=100，实测）
+
+| 配置 | 准确率 | 堵塞误入参数路径 | token/案例 |
+|---|---|---|---:|
+| rules-only | **0.960** [0.920, 0.990] | 0.000 | 0 |
+| llm | 0.520 [0.420, 0.620] | 0.000 | 3,685 |
+| llm + Skills | 0.700 [0.610, 0.790] | 0.010 | 6,138 |
+
+**规则基线赢了，而且是压倒性的。** 本任务的判别依据是少数几个连续特征的阈值与符号——这恰好是确定性代码的强项。把它交给概率系统，是用不确定的方式做一件本可以精确写下来的事。这正是本项目把感知层与执行层留在 Python 的理由，消融实验给了这个架构判断一个数字。
+
+Skills 的贡献同样明确：`UNDEREXT_PARAM` 召回由 **0.000 升至 0.850**——此前完全无法识别的类别。修复发生在定性诊断预测的位置，不是数字的随机波动。
+
+完整分析、退化项与成本权衡见 [ablation_dev.md](evals/results/ablation_dev.md)。holdout 与 challenge 的 LLM 档尚未运行，**对外引用前必须补跑**。
 
 ---
 

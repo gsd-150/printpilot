@@ -56,8 +56,8 @@ MILESTONES: tuple[Milestone, ...] = (
     ),
     Milestone(
         id="M5",
-        title="2 个 Skill + 注册机制（校验/路由）；接入诊断待办",
-        status=MilestoneStatus.IN_PROGRESS,
+        title="2 个 Skill + 注册机制 + 接入诊断，dev 全量消融完成",
+        status=MilestoneStatus.VERIFIED,
         acceptance="printpilot skills validate 能拦住坏 Skill",
     ),
     Milestone(

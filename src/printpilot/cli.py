@@ -57,10 +57,11 @@ def _build_diagnoser(name: str, prompt: str | None = None) -> tuple[object, str]
     if name == "rules":
         return diagnose, "rules"
 
-    if name == "llm":
+    if name in {"llm", "llm+skills"}:
         from printpilot.diagnosis.llm import DEFAULT_PROMPT, LLMDiagnoser
         from printpilot.llm import OpenAICompatibleClient, load_settings
         from printpilot.prompts import load_prompt
+        from printpilot.skills_runtime import SkillRegistry
 
         settings = load_settings()
         if not settings.configured:
@@ -69,9 +70,18 @@ def _build_diagnoser(name: str, prompt: str | None = None) -> tuple[object, str]
                 file=sys.stderr,
             )
             return None
+
+        registry: SkillRegistry | None = None
+        if name == "llm+skills":
+            registry = SkillRegistry.load()
+            if registry.errors:
+                print("Skills 未通过校验，先修复后再消融。", file=sys.stderr)
+                return None
+
         diagnoser = LLMDiagnoser(
             client=OpenAICompatibleClient(settings=settings),
             prompt=load_prompt(prompt or DEFAULT_PROMPT),
+            skills=registry,
         )
         return diagnoser, f"{diagnoser.name}|{settings.model}"
 
