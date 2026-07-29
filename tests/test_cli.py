@@ -87,17 +87,35 @@ def test_eval_with_llm_refuses_when_unconfigured(
     assert "LLM 未配置" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize(
-    ("argv", "milestone"),
-    [
-        (["skills", "validate"], "M5"),
-    ],
-)
-def test_unimplemented_commands_exit_nonzero(
-    argv: list[str], milestone: str, capsys: pytest.CaptureFixture[str]
+def test_skills_list(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["skills", "list"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "extrusion-anomaly-triage" in out
+    assert "safe-action-selection" in out
+
+
+def test_skills_validate_passes_on_the_shipped_skills(
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert main(argv) == EXIT_NOT_IMPLEMENTED
-    assert milestone in capsys.readouterr().err
+    assert main(["skills", "validate"]) == EXIT_OK
+    assert "全部通过校验" in capsys.readouterr().out
+
+
+def test_skills_validate_fails_on_deliberately_broken_skills(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The check that the check works. A validate command that cannot fail is
+    decoration, so CI runs it against fixtures built to break each rule."""
+    root = Path(__file__).parent / "fixtures" / "bad_skills"
+    assert main(["skills", "validate", "--root", str(root)]) == EXIT_NOT_IMPLEMENTED
+    err = capsys.readouterr().err
+    for rule in ("R0", "R1", "R2", "R3", "R5"):
+        assert rule in err, f"{rule} did not fire on the fixtures"
+
+
+def test_skills_route_needs_a_case(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["skills", "route"]) == EXIT_NOT_IMPLEMENTED
+    assert "--case" in capsys.readouterr().err
 
 
 def test_version_flag(capsys: pytest.CaptureFixture[str]) -> None:

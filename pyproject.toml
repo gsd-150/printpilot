@@ -13,6 +13,11 @@ dependencies = [
     # Pinned below 2.x on purpose: this is orchestration infrastructure and its
     # API has churned across majors. See docs/decisions/0001-agent-framework.md.
     "langgraph>=1.2,<2",
+    # SKILL.md frontmatter. Arrives transitively via langgraph, but a package we
+    # import directly belongs in our own dependency list.
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "openai>=1.60,<3",
 ]
 
 [project.optional-dependencies]
@@ -21,6 +26,7 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.8",
     "mypy>=1.13",
+    "types-PyYAML>=6.0",
 ]
 
 [project.scripts]

@@ -45,6 +45,11 @@ jobs:
       - name: Type check
         run: mypy
 
+      # A Skill declaring an input perception cannot produce reads perfectly in
+      # review and then never fires. Only a machine check catches that.
+      - name: Validate Skills registry
+        run: printpilot skills validate
+
       # No API key is configured for CI on purpose: the core suite must pass
       # offline via MockLLMClient. If a test ever needs a live model, it belongs
       # behind an explicit opt-in marker, not in this job.

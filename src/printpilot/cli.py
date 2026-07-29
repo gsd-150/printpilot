@@ -148,6 +148,73 @@ def _run_llm_check(show_models: bool) -> int:
     return EXIT_OK if report.best_mode else EXIT_NOT_IMPLEMENTED
 
 
+def _run_skills(action: str, case_id: str | None, root: Path | None) -> int:
+    from printpilot.skills_runtime import Severity, SkillRegistry
+
+    registry = SkillRegistry.load(root)
+    if not registry.skills and not registry.parse_failures:
+        print("未发现任何 Skill。", file=sys.stderr)
+        return EXIT_NOT_IMPLEMENTED
+
+    match action:
+        case "list":
+            print(f"{'名称':<28}{'版本':<10}{'领域':<18}触发特征")
+            for skill in registry.skills:
+                meta = skill.meta
+                print(
+                    f"{meta.name:<28}{meta.version:<10}{meta.domain:<18}{', '.join(meta.triggers)}"
+                )
+            return EXIT_OK
+
+        case "validate":
+            issues = registry.validate()
+            if not issues:
+                print(f"{len(registry.skills)} 个 Skill 全部通过校验。")
+                return EXIT_OK
+            for issue in issues:
+                print(str(issue), file=sys.stderr)
+            errors = sum(1 for i in issues if i.severity is Severity.ERROR)
+            print(f"\n{len(issues)} 项问题（{errors} 个错误）。", file=sys.stderr)
+            # Warnings alone must not fail CI; errors must.
+            return EXIT_NOT_IMPLEMENTED if errors else EXIT_OK
+
+        case "route":
+            return _route_case(registry, case_id)
+
+    return EXIT_NOT_IMPLEMENTED  # pragma: no cover - argparse restricts the choices
+
+
+def _route_case(registry: object, case_id: str | None) -> int:
+    from printpilot.perception import perceive
+    from printpilot.simulator import Split, load_cases
+
+    if case_id is None:
+        print("`skills route` 需要 --case <case_id>。", file=sys.stderr)
+        return EXIT_NOT_IMPLEMENTED
+
+    split = Split(case_id.split("-", 1)[0])
+    case = next((c for c in load_cases(DEFAULT_DATASET_ROOT, split) if c.case_id == case_id), None)
+    if case is None:
+        print(f"找不到案例 {case_id}。", file=sys.stderr)
+        return EXIT_NOT_IMPLEMENTED
+
+    report = perceive(case.telemetry, material=case.material.value)
+    matches = registry.route(report)  # type: ignore[attr-defined]
+    print(f"案例 {case_id}（材料 {case.material.value}）")
+    print(f"越界特征：{', '.join(f.name for f in report.features if f.exceeded) or '无'}")
+    if report.uncomputable_features:
+        print(f"无法测量：{', '.join(report.uncomputable_features)}")
+    print()
+    if not matches:
+        print("没有 Skill 被选中。")
+        return EXIT_OK
+    for rank, match in enumerate(matches, start=1):
+        flag = "（降级：缺 " + ", ".join(match.missing_optional) + "）" if match.degraded else ""
+        print(f"  {rank}. {match.skill.name:<28} 得分 {match.score:.3f}{flag}")
+        print(f"     命中触发：{', '.join(match.satisfied_triggers)}")
+    return EXIT_OK
+
+
 def _not_implemented(command: str, milestone: str) -> int:
     print(f"`printpilot {command}` 尚未实现，计划在 {milestone}。", file=sys.stderr)
     print("当前进度见 `printpilot info`。", file=sys.stderr)
@@ -185,8 +252,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_llm = sub.add_parser("llm-check", help="实测所配置端点的连通性与结构化输出能力")
     p_llm.add_argument("--models", action="store_true", help="打印完整可用模型列表")
 
-    p_skills = sub.add_parser("skills", help="Agent Skills 注册表工具 (M5)")
+    p_skills = sub.add_parser("skills", help="Agent Skills 注册表工具")
     p_skills.add_argument("action", choices=["list", "validate", "route"])
+    p_skills.add_argument("--case", default=None, help="route 用：案例 id，如 dev-0000")
+    p_skills.add_argument("--root", type=Path, default=None, help="Skills 目录，默认 skills/")
 
     return parser
 
@@ -207,7 +276,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         case "llm-check":
             return _run_llm_check(args.models)
         case "skills":
-            return _not_implemented(f"skills {args.action}", "M5")
+            return _run_skills(args.action, args.case, args.root)
         case _:  # pragma: no cover - argparse rejects unknown commands first
             parser.error(f"unknown command: {args.command}")
 
