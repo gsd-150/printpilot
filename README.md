@@ -24,13 +24,13 @@
 
 ## 当前完成度
 
-**2 / 8 里程碑已验证**（由 `printpilot info` 在运行时报告，非手工维护）
+**3 / 8 里程碑已验证**（由 `printpilot info` 在运行时报告，非手工维护）
 
 | | 里程碑 | 验收标准 |
 |---|---|---|
 | ✅ | **M1** 工程骨架、schemas、CI、离线 mock LLM | `ruff` + `mypy` + `pytest` 全绿 |
 | ✅ | **M2** LangGraph 选型验证与节点契约校验 | [ADR 0001](docs/decisions/0001-agent-framework.md) + `tests/test_langgraph_smoke.py` |
-| ⬜ | M3 合成仿真：5 类场景族 + 虚拟传感器 + 独立质量评估器 | `printpilot dataset` 产出 160 条 + manifest |
+| ✅ | **M3** 合成遥测环境：故障注入 + 虚拟传感器 + 独立质量评估器 | `printpilot dataset` 产出 160 条 + manifest |
 | ⬜ | M4 LangGraph StateGraph + Perception + Diagnosis 基线 | `printpilot eval --split dev` 输出基线指标 |
 | ⬜ | M5 2 个 Skill + 注册/校验/路由 + 单测 | `printpilot skills validate` 能拦住坏 Skill |
 | ⬜ | M6 单向量后端 + 知识卡 + 检索评测 | Hit@k / MRR 为实测值 |
@@ -94,6 +94,23 @@ uv run ruff check . ; uv run mypy ; uv run pytest
 - 把堵塞误判为参数问题 → **向受阻的喷嘴增大流量**，抬高挤出压力、加剧挤出机磨料
 
 因此决策输出不是参数补丁，而是含 `PAUSE_AND_INSPECT` / `MAINTENANCE_REQUIRED` / `ABORT_PRINT` / `ESCALATE_TO_HUMAN` 的五类动作，并由 `SafetyGate` 硬规则保证完全堵塞永远不会被自动调参继续打印。
+
+### 数据集的难度是设计出来的，不是碰巧的
+
+仿真器第一版把两类故障的残余流量设成了 0.62–0.84 与 0.86–0.95——**区间不重叠**，一条 0.84 的阈值就能完美分开。那样的基准测的是阈值，不是诊断。
+
+现在两者是重叠的，`tests/test_simulator.py::TestDifficulty` 把这个性质钉死：
+
+| 故障 | 尾段 flow_ratio | 尾段 extruder_current |
+|---|---|---|
+| `CLOG_PARTIAL` | 0.730 – **0.918** | 0.387 – 0.517 ↑ |
+| `UNDEREXT_PARAM` | **0.798** – 0.931 | 0.340 – 0.350 ↓ |
+
+在 0.798–0.918 这段流量曲线上两者无法区分，只能靠电流**耦合方向**判断：机械受阻使推料力上升，而 flow 设定偏低只是少挤，推力反而略降。
+
+数据集还包含三类难例：`NORMAL_SUSPICIOUS` 的瞬时凹陷深度与轻度堵塞相当（须看持续时间而非深度）；challenge 集里有未见过的材料、超范围噪声；以及 10 条**移除了 `extruder_current`** 的案例——失去判别信号后，正确答案是 `UNKNOWN`，而不是猜一个。
+
+### 知识冲突优先级
 
 ### 框架只保证形状，不保证取值
 

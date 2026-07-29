@@ -44,8 +44,8 @@ MILESTONES: tuple[Milestone, ...] = (
     ),
     Milestone(
         id="M3",
-        title="合成仿真：5 类场景族 + 虚拟传感器 + 独立质量评估器",
-        status=MilestoneStatus.PLANNED,
+        title="合成遥测环境：故障注入 + 虚拟传感器 + 独立质量评估器",
+        status=MilestoneStatus.VERIFIED,
         acceptance="printpilot dataset 产出 160 条 + manifest",
     ),
     Milestone(

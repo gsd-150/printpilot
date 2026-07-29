@@ -1,0 +1,101 @@
+{
+  "dataset_schema_version": "1.0.0",
+  "scenario_version": "1.0.0",
+  "generator": "printpilot 0.1.0",
+  "master_seed": 42,
+  "generated_at": "2026-07-29T13:15:05+00:00",
+  "synthetic": true,
+  "notice": "All telemetry is synthetic and produced by printpilot.simulator. flow_ratio and extruder_current are virtual sensors without a direct equivalent on stock consumer FDM hardware.",
+  "counts": {
+    "dev": 100,
+    "holdout": 30,
+    "challenge": 30
+  },
+  "fault_distribution": {
+    "dev": {
+      "CLOG_FULL": 20,
+      "CLOG_PARTIAL": 20,
+      "NORMAL_SUSPICIOUS": 20,
+      "THERMAL_DRIFT": 20,
+      "UNDEREXT_PARAM": 20
+    },
+    "holdout": {
+      "CLOG_FULL": 6,
+      "CLOG_PARTIAL": 6,
+      "NORMAL_SUSPICIOUS": 6,
+      "THERMAL_DRIFT": 6,
+      "UNDEREXT_PARAM": 6
+    },
+    "challenge": {
+      "CLOG_FULL": 4,
+      "CLOG_PARTIAL": 9,
+      "NORMAL_SUSPICIOUS": 4,
+      "THERMAL_DRIFT": 4,
+      "UNDEREXT_PARAM": 9
+    }
+  },
+  "families": {
+    "dev": [
+      "CLOG_FULL/ABS/box/high",
+      "CLOG_FULL/PETG/bracket/nominal",
+      "CLOG_FULL/PLA/box/nominal",
+      "CLOG_FULL/PLA/cylinder/low",
+      "CLOG_PARTIAL/ABS/box/high",
+      "CLOG_PARTIAL/PETG/bracket/nominal",
+      "CLOG_PARTIAL/PLA/box/nominal",
+      "CLOG_PARTIAL/PLA/cylinder/low",
+      "NORMAL_SUSPICIOUS/ABS/box/high",
+      "NORMAL_SUSPICIOUS/PETG/bracket/nominal",
+      "NORMAL_SUSPICIOUS/PLA/box/nominal",
+      "NORMAL_SUSPICIOUS/PLA/cylinder/low",
+      "THERMAL_DRIFT/ABS/box/high",
+      "THERMAL_DRIFT/PETG/bracket/nominal",
+      "THERMAL_DRIFT/PLA/box/nominal",
+      "THERMAL_DRIFT/PLA/cylinder/low",
+      "UNDEREXT_PARAM/ABS/box/high",
+      "UNDEREXT_PARAM/PETG/bracket/nominal",
+      "UNDEREXT_PARAM/PLA/box/nominal",
+      "UNDEREXT_PARAM/PLA/cylinder/low"
+    ],
+    "holdout": [
+      "CLOG_FULL/ABS/lattice/low",
+      "CLOG_FULL/PETG/thin_wall/nominal",
+      "CLOG_PARTIAL/ABS/lattice/low",
+      "CLOG_PARTIAL/PETG/thin_wall/nominal",
+      "NORMAL_SUSPICIOUS/ABS/lattice/low",
+      "NORMAL_SUSPICIOUS/PETG/thin_wall/nominal",
+      "THERMAL_DRIFT/ABS/lattice/low",
+      "THERMAL_DRIFT/PETG/thin_wall/nominal",
+      "UNDEREXT_PARAM/ABS/lattice/low",
+      "UNDEREXT_PARAM/PETG/thin_wall/nominal"
+    ],
+    "challenge": [
+      "CLOG_FULL/PLA/box/boundary",
+      "CLOG_FULL/TPU/thin_wall/nominal",
+      "CLOG_PARTIAL/PETG/bracket/nominal/-extruder_current",
+      "CLOG_PARTIAL/PLA/box/boundary",
+      "CLOG_PARTIAL/TPU/thin_wall/nominal",
+      "NORMAL_SUSPICIOUS/PLA/box/boundary",
+      "NORMAL_SUSPICIOUS/TPU/thin_wall/nominal",
+      "THERMAL_DRIFT/PLA/box/boundary",
+      "THERMAL_DRIFT/TPU/thin_wall/nominal",
+      "UNDEREXT_PARAM/PETG/bracket/nominal/-extruder_current",
+      "UNDEREXT_PARAM/PLA/box/boundary",
+      "UNDEREXT_PARAM/TPU/thin_wall/nominal"
+    ]
+  },
+  "digests": {
+    "dev": {
+      "cases_sha256": "04d3fc8762854439a4c221288694902c1931cb0210960f4f7f71dd96869761e1",
+      "labels_sha256": "b47387e1b0845e8514f9dd4402eb25e66a0bfd0ce1e42bbee75f376b6a2b4ed7"
+    },
+    "holdout": {
+      "cases_sha256": "f8d0e02c6e33c9b15a34a7bf0002186abe83e6b33ef1410033373543cb7b23ca",
+      "labels_sha256": "33003ab4d1ac7219a3515a709ea0d0769be0f1052a3d4b3ad54ac3f4bae9f4e6"
+    },
+    "challenge": {
+      "cases_sha256": "de35f6fd4a73a45723d60dcf7d53d666b81a2aad201f469d6d0766c6c2dbb10d",
+      "labels_sha256": "7dc8a111e01a5205d91c6830c7c21000b7464dcc7b0473bb60acf0fa9f49f5b6"
+    }
+  }
+}

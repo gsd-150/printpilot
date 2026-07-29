@@ -11,12 +11,16 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Sequence
+from pathlib import Path
 
 from printpilot import __version__
+from printpilot.simulator import DEFAULT_MASTER_SEED, write_dataset
 from printpilot.status import MILESTONES, completion_line
 
 EXIT_OK = 0
 EXIT_NOT_IMPLEMENTED = 2
+
+DEFAULT_DATASET_ROOT = Path("datasets")
 
 
 def _print_info() -> int:
@@ -29,6 +33,19 @@ def _print_info() -> int:
     for m in MILESTONES:
         print(f"  {m.status.marker} {m.id}  {m.title}")
         print(f"        验收：{m.acceptance}")
+    return EXIT_OK
+
+
+def _run_dataset(root: Path, seed: int) -> int:
+    manifest = write_dataset(root, seed)
+    counts = manifest["counts"]
+    assert isinstance(counts, dict)
+    total = sum(counts.values())
+    print(f"已生成 {total} 条合成案例 → {root}/  (master_seed={seed})")
+    for split, n in counts.items():
+        print(f"  {split:<10} {n:>4} 条")
+    print(f"清单：{root / 'manifest.json'}")
+    print("提示：cases.jsonl 与 labels.jsonl 分开存放，标签不应进入 Agent 上下文。")
     return EXIT_OK
 
 
@@ -48,8 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("info", help="显示项目边界与里程碑完成度")
 
-    p_dataset = sub.add_parser("dataset", help="生成合成遥测数据集 (M3)")
-    p_dataset.add_argument("--seed", type=int, default=42)
+    p_dataset = sub.add_parser("dataset", help="生成合成遥测数据集")
+    p_dataset.add_argument("--seed", type=int, default=DEFAULT_MASTER_SEED)
+    p_dataset.add_argument("--out", type=Path, default=DEFAULT_DATASET_ROOT)
 
     p_eval = sub.add_parser("eval", help="运行评测与消融 (M4)")
     p_eval.add_argument("--split", choices=["dev", "holdout", "challenge"], default="dev")
@@ -69,7 +87,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         case "info" | None:
             return _print_info()
         case "dataset":
-            return _not_implemented("dataset", "M3")
+            return _run_dataset(args.out, args.seed)
         case "eval":
             return _not_implemented("eval", "M4")
         case "skills":

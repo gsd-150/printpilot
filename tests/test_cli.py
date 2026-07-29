@@ -6,6 +6,8 @@ would make the milestone table look further along than the code is.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from printpilot import __version__
@@ -32,10 +34,27 @@ def test_bare_invocation_shows_info(capsys: pytest.CaptureFixture[str]) -> None:
     assert "PrintPilot" in capsys.readouterr().out
 
 
+def test_dataset_command_generates_a_dataset(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert main(["dataset", "--out", str(tmp_path), "--seed", "7"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "160" in out
+    assert (tmp_path / "manifest.json").exists()
+    assert (tmp_path / "dev" / "cases.jsonl").exists()
+    assert (tmp_path / "dev" / "labels.jsonl").exists()
+
+
+def test_dataset_command_warns_about_label_separation(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    main(["dataset", "--out", str(tmp_path)])
+    assert "标签不应进入 Agent 上下文" in capsys.readouterr().out
+
+
 @pytest.mark.parametrize(
     ("argv", "milestone"),
     [
-        (["dataset"], "M3"),
         (["eval", "--split", "dev"], "M4"),
         (["skills", "validate"], "M5"),
     ],
