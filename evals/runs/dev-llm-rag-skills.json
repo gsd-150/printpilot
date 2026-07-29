@@ -1,0 +1,1051 @@
+{
+  "schema_version": "1.0.0",
+  "name": "dev-llm-rag-skills",
+  "diagnoser": "llm+rag+skills@diagnosis/v1_baseline|claude-sonnet-4-5-20250929",
+  "split": "dev",
+  "model": "claude-sonnet-4-5-20250929",
+  "prompt": "",
+  "dataset_seed": null,
+  "created_at": "2026-07-29T17:40:57+00:00",
+  "predictions": [
+    {
+      "case_id": "dev-0000",
+      "family_id": "CLOG_PARTIAL/PLA/box/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0001",
+      "family_id": "CLOG_PARTIAL/PLA/box/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.87,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0002",
+      "family_id": "CLOG_PARTIAL/PLA/box/nominal",
+      "predicted": "UNKNOWN",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.0,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0003",
+      "family_id": "CLOG_PARTIAL/PLA/box/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0004",
+      "family_id": "CLOG_PARTIAL/PLA/box/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0005",
+      "family_id": "CLOG_PARTIAL/PLA/cylinder/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.85,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0006",
+      "family_id": "CLOG_PARTIAL/PLA/cylinder/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.87,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0007",
+      "family_id": "CLOG_PARTIAL/PLA/cylinder/low",
+      "predicted": "UNKNOWN",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.0,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0008",
+      "family_id": "CLOG_PARTIAL/PLA/cylinder/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0009",
+      "family_id": "CLOG_PARTIAL/PLA/cylinder/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.87,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0010",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0011",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0012",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0013",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0014",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0015",
+      "family_id": "CLOG_PARTIAL/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.85,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0016",
+      "family_id": "CLOG_PARTIAL/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0017",
+      "family_id": "CLOG_PARTIAL/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0018",
+      "family_id": "CLOG_PARTIAL/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0019",
+      "family_id": "CLOG_PARTIAL/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.85,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0020",
+      "family_id": "CLOG_FULL/PLA/box/nominal",
+      "predicted": "UNKNOWN",
+      "truth": "CLOG_FULL",
+      "confidence": 0.0,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0021",
+      "family_id": "CLOG_FULL/PLA/box/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0022",
+      "family_id": "CLOG_FULL/PLA/box/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0023",
+      "family_id": "CLOG_FULL/PLA/box/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0024",
+      "family_id": "CLOG_FULL/PLA/box/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0025",
+      "family_id": "CLOG_FULL/PLA/cylinder/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0026",
+      "family_id": "CLOG_FULL/PLA/cylinder/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0027",
+      "family_id": "CLOG_FULL/PLA/cylinder/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0028",
+      "family_id": "CLOG_FULL/PLA/cylinder/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0029",
+      "family_id": "CLOG_FULL/PLA/cylinder/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0030",
+      "family_id": "CLOG_FULL/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0031",
+      "family_id": "CLOG_FULL/PETG/bracket/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0032",
+      "family_id": "CLOG_FULL/PETG/bracket/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0033",
+      "family_id": "CLOG_FULL/PETG/bracket/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0034",
+      "family_id": "CLOG_FULL/PETG/bracket/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0035",
+      "family_id": "CLOG_FULL/ABS/box/high",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0036",
+      "family_id": "CLOG_FULL/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0037",
+      "family_id": "CLOG_FULL/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0038",
+      "family_id": "CLOG_FULL/ABS/box/high",
+      "predicted": "CLOG_FULL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0039",
+      "family_id": "CLOG_FULL/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0040",
+      "family_id": "UNDEREXT_PARAM/PLA/box/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0041",
+      "family_id": "UNDEREXT_PARAM/PLA/box/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0042",
+      "family_id": "UNDEREXT_PARAM/PLA/box/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0043",
+      "family_id": "UNDEREXT_PARAM/PLA/box/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0044",
+      "family_id": "UNDEREXT_PARAM/PLA/box/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0045",
+      "family_id": "UNDEREXT_PARAM/PLA/cylinder/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0046",
+      "family_id": "UNDEREXT_PARAM/PLA/cylinder/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0047",
+      "family_id": "UNDEREXT_PARAM/PLA/cylinder/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0048",
+      "family_id": "UNDEREXT_PARAM/PLA/cylinder/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0049",
+      "family_id": "UNDEREXT_PARAM/PLA/cylinder/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0050",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0051",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0052",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0053",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0054",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0055",
+      "family_id": "UNDEREXT_PARAM/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.62,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0056",
+      "family_id": "UNDEREXT_PARAM/ABS/box/high",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0057",
+      "family_id": "UNDEREXT_PARAM/ABS/box/high",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0058",
+      "family_id": "UNDEREXT_PARAM/ABS/box/high",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0059",
+      "family_id": "UNDEREXT_PARAM/ABS/box/high",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0060",
+      "family_id": "THERMAL_DRIFT/PLA/box/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.62,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0061",
+      "family_id": "THERMAL_DRIFT/PLA/box/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0062",
+      "family_id": "THERMAL_DRIFT/PLA/box/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "safe-action-selection",
+        "extrusion-anomaly-triage"
+      ]
+    },
+    {
+      "case_id": "dev-0063",
+      "family_id": "THERMAL_DRIFT/PLA/box/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "safe-action-selection",
+        "extrusion-anomaly-triage"
+      ]
+    },
+    {
+      "case_id": "dev-0064",
+      "family_id": "THERMAL_DRIFT/PLA/box/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0065",
+      "family_id": "THERMAL_DRIFT/PLA/cylinder/low",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0066",
+      "family_id": "THERMAL_DRIFT/PLA/cylinder/low",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0067",
+      "family_id": "THERMAL_DRIFT/PLA/cylinder/low",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0068",
+      "family_id": "THERMAL_DRIFT/PLA/cylinder/low",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0069",
+      "family_id": "THERMAL_DRIFT/PLA/cylinder/low",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0070",
+      "family_id": "THERMAL_DRIFT/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0071",
+      "family_id": "THERMAL_DRIFT/PETG/bracket/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "safe-action-selection",
+        "extrusion-anomaly-triage"
+      ]
+    },
+    {
+      "case_id": "dev-0072",
+      "family_id": "THERMAL_DRIFT/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0073",
+      "family_id": "THERMAL_DRIFT/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0074",
+      "family_id": "THERMAL_DRIFT/PETG/bracket/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0075",
+      "family_id": "THERMAL_DRIFT/ABS/box/high",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0076",
+      "family_id": "THERMAL_DRIFT/ABS/box/high",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0077",
+      "family_id": "THERMAL_DRIFT/ABS/box/high",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0078",
+      "family_id": "THERMAL_DRIFT/ABS/box/high",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.62,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0079",
+      "family_id": "THERMAL_DRIFT/ABS/box/high",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "dev-0080",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/box/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0081",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/box/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0082",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/box/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0083",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/box/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0084",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/box/nominal",
+      "predicted": "UNKNOWN",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.0,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0085",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/cylinder/low",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0086",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/cylinder/low",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0087",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/cylinder/low",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0088",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/cylinder/low",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0089",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/cylinder/low",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0090",
+      "family_id": "NORMAL_SUSPICIOUS/PETG/bracket/nominal",
+      "predicted": "UNKNOWN",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.0,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0091",
+      "family_id": "NORMAL_SUSPICIOUS/PETG/bracket/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0092",
+      "family_id": "NORMAL_SUSPICIOUS/PETG/bracket/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.62,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0093",
+      "family_id": "NORMAL_SUSPICIOUS/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.62,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0094",
+      "family_id": "NORMAL_SUSPICIOUS/PETG/bracket/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.62,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0095",
+      "family_id": "NORMAL_SUSPICIOUS/ABS/box/high",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.62,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0096",
+      "family_id": "NORMAL_SUSPICIOUS/ABS/box/high",
+      "predicted": "UNKNOWN",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.0,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0097",
+      "family_id": "NORMAL_SUSPICIOUS/ABS/box/high",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.62,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0098",
+      "family_id": "NORMAL_SUSPICIOUS/ABS/box/high",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.62,
+      "skills_used": []
+    },
+    {
+      "case_id": "dev-0099",
+      "family_id": "NORMAL_SUSPICIOUS/ABS/box/high",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.62,
+      "skills_used": []
+    }
+  ],
+  "cost": {
+    "calls": 139,
+    "prompt_tokens": 707100,
+    "completion_tokens": 214810,
+    "api_seconds": 2703.8834490000295,
+    "schema_violations": 39,
+    "repair_attempts": 39,
+    "transport_failures": 6,
+    "wall_seconds": 374.6986801999992
+  }
+}

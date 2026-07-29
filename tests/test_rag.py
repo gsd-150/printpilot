@@ -169,13 +169,25 @@ class TestStore:
     def test_results_carry_a_citable_source(self, store: KnowledgeStore) -> None:
         assert all(r.source_label for r in store.query("堵塞", top_k=3))
 
-    def test_material_filter_narrows_the_result(self) -> None:
-        """Filtering before ranking, so top_k returns applicable cards rather than
-        candidates that are then discarded."""
-        store = KnowledgeStore(embedder=DeterministicEmbedder())
-        store.build(load_cards())
+    def test_material_filter_returns_applicable_cards(self, store: KnowledgeStore) -> None:
+        """Asserting *non-empty* first, because the original version of this test
+        checked a property over the results and passed vacuously while the filter
+        was matching nothing at all — materials were stored joined into one string
+        and `$in` means "equals one of these", not "contains"."""
         petg = store.query("温度窗口", top_k=5, material="PETG")
+        assert petg, "the filter matched nothing"
         assert all("PETG" in r.metadata["applicable_material"] for r in petg)
+
+    def test_material_filter_excludes_inapplicable_cards(self) -> None:
+        """A filter that never excludes anything is not a filter."""
+        store = KnowledgeStore(embedder=DeterministicEmbedder())
+        cards = load_cards()
+        narrowed = [
+            *cards[:1],
+            cards[1].model_copy(update={"id": "pla-only", "applicable_material": ("PLA",)}),
+        ]
+        store.build(narrowed)
+        assert "pla-only" not in {r.card_id for r in store.query("x", top_k=5, material="ABS")}
 
     def test_querying_before_building_is_an_error(self) -> None:
         with pytest.raises(RuntimeError, match="not been built"):

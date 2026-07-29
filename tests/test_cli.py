@@ -72,7 +72,10 @@ def test_eval_rejects_an_unimplemented_diagnoser(
 ) -> None:
     main(["dataset", "--out", str(tmp_path)])
     capsys.readouterr()
-    assert main(["eval", "--data", str(tmp_path), "--diagnoser", "llm+rag"]) == EXIT_NOT_IMPLEMENTED
+    assert (
+        main(["eval", "--data", str(tmp_path), "--diagnoser", "llm+telepathy"])
+        == EXIT_NOT_IMPLEMENTED
+    )
     assert "尚未实现" in capsys.readouterr().err
 
 

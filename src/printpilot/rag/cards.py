@@ -27,6 +27,9 @@ KNOWLEDGE_ROOT = Path(__file__).resolve().parents[3] / "knowledge"
 ACCEPTED = "accepted"
 CANDIDATE = "candidate_cases"
 
+#: Prefix for the per-material boolean metadata keys used for filtering.
+MATERIAL_PREFIX = "material_"
+
 _DELIMITER = "---"
 
 
@@ -79,7 +82,16 @@ class KnowledgeCard(BaseModel):
         real signal and is short."""
         return f"{self.title}\n\n{self.body}"
 
-    def metadata(self) -> dict[str, str]:
+    def metadata(self) -> dict[str, str | bool]:
+        """Flat scalars, because that is all a vector store's metadata accepts.
+
+        Materials become one boolean key each rather than a joined string. The
+        joined form was the first attempt and silently broke filtering: a store's
+        ``$in`` means "the field equals one of these", not "this appears inside the
+        field", so a query for PLA matched nothing at all — every card listed
+        several materials. The test that should have caught it asserted a property
+        over the results and passed vacuously on the empty list.
+        """
         return {
             "id": self.id,
             "title": self.title,
@@ -89,6 +101,7 @@ class KnowledgeCard(BaseModel):
             "retrieved_at": self.retrieved_at,
             "evidence_level": self.evidence_level.value,
             "applicable_material": ",".join(self.applicable_material),
+            **{f"{MATERIAL_PREFIX}{m}": True for m in self.applicable_material},
             "tags": ",".join(self.tags),
             "content_hash": self.content_hash,
             "supersedes": self.supersedes or "",

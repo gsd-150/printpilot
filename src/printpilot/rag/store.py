@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from printpilot.rag.cards import KnowledgeCard
+from printpilot.rag.cards import MATERIAL_PREFIX, KnowledgeCard
 from printpilot.rag.embedding import Embedder
 
 COLLECTION = "printpilot-knowledge"
@@ -110,7 +110,7 @@ class KnowledgeStore:
             msg = "store has not been built"
             raise RuntimeError(msg)
 
-        where = {"applicable_material": {"$in": [material]}} if material else None
+        where = {f"{MATERIAL_PREFIX}{material}": True} if material else None
         result = self._collection.query(
             query_embeddings=self.embedder.embed([text]),
             n_results=min(top_k, max(1, len(self._cards))),

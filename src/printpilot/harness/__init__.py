@@ -13,11 +13,17 @@ from printpilot.harness.concurrency import (
     resolve_workers,
 )
 from printpilot.harness.cost import RunCost, collect_cost, format_cost
+from printpilot.harness.trace import DISABLED, TRACES_ROOT, Step, TraceEvent, Tracer
 
 __all__ = [
     "DEFAULT_WORKERS",
+    "DISABLED",
     "MAX_WORKERS",
+    "TRACES_ROOT",
     "RunCost",
+    "Step",
+    "TraceEvent",
+    "Tracer",
     "collect_cost",
     "format_cost",
     "map_bounded",

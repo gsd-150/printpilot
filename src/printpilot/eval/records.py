@@ -38,6 +38,7 @@ class CasePrediction(BaseModel):
     truth: FaultCode
     confidence: float
     skills_used: list[str] = Field(default_factory=list)
+    retrieved_chunk_ids: list[str] = Field(default_factory=list)
 
     @property
     def correct(self) -> bool:
@@ -101,6 +102,7 @@ def build_record(
                 truth=p.truth,
                 confidence=p.confidence,
                 skills_used=list(p.skills_used),
+                retrieved_chunk_ids=list(p.retrieved_chunk_ids),
             )
             for p in predictions
         ],

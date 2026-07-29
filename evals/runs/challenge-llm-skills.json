@@ -1,0 +1,351 @@
+{
+  "schema_version": "1.0.0",
+  "name": "challenge-llm-skills",
+  "diagnoser": "llm+skills@diagnosis/v1_baseline|claude-sonnet-4-5-20250929",
+  "split": "challenge",
+  "model": "claude-sonnet-4-5-20250929",
+  "prompt": "",
+  "dataset_seed": null,
+  "created_at": "2026-07-29T17:50:34+00:00",
+  "predictions": [
+    {
+      "case_id": "challenge-0000",
+      "family_id": "CLOG_PARTIAL/TPU/thin_wall/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0001",
+      "family_id": "CLOG_PARTIAL/TPU/thin_wall/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0002",
+      "family_id": "CLOG_FULL/TPU/thin_wall/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0003",
+      "family_id": "CLOG_FULL/TPU/thin_wall/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "CLOG_FULL",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0004",
+      "family_id": "UNDEREXT_PARAM/TPU/thin_wall/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0005",
+      "family_id": "UNDEREXT_PARAM/TPU/thin_wall/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0006",
+      "family_id": "THERMAL_DRIFT/TPU/thin_wall/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0007",
+      "family_id": "THERMAL_DRIFT/TPU/thin_wall/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0008",
+      "family_id": "NORMAL_SUSPICIOUS/TPU/thin_wall/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": [
+        "fdm_fault_diagnosis",
+        "tpu_material_behavior"
+      ]
+    },
+    {
+      "case_id": "challenge-0009",
+      "family_id": "NORMAL_SUSPICIOUS/TPU/thin_wall/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": [
+        "fdm_fault_diagnosis",
+        "tpu_material_behavior",
+        "feature_threshold_comparison"
+      ]
+    },
+    {
+      "case_id": "challenge-0010",
+      "family_id": "CLOG_PARTIAL/PLA/box/boundary",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0011",
+      "family_id": "CLOG_PARTIAL/PLA/box/boundary",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0012",
+      "family_id": "CLOG_FULL/PLA/box/boundary",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.82,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0013",
+      "family_id": "CLOG_FULL/PLA/box/boundary",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0014",
+      "family_id": "UNDEREXT_PARAM/PLA/box/boundary",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.62,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0015",
+      "family_id": "UNDEREXT_PARAM/PLA/box/boundary",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.62,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0016",
+      "family_id": "THERMAL_DRIFT/PLA/box/boundary",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0017",
+      "family_id": "THERMAL_DRIFT/PLA/box/boundary",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0018",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/box/boundary",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.62,
+      "skills_used": [
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0019",
+      "family_id": "NORMAL_SUSPICIOUS/PLA/box/boundary",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.72,
+      "skills_used": [
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0020",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0021",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0022",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0023",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0024",
+      "family_id": "CLOG_PARTIAL/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0025",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0026",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0027",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0028",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    },
+    {
+      "case_id": "challenge-0029",
+      "family_id": "UNDEREXT_PARAM/PETG/bracket/nominal/-extruder_current",
+      "predicted": "UNKNOWN",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.72,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ]
+    }
+  ],
+  "cost": {
+    "calls": 30,
+    "prompt_tokens": 126142,
+    "completion_tokens": 45039,
+    "api_seconds": 1122.4082105000052,
+    "schema_violations": 0,
+    "repair_attempts": 0,
+    "transport_failures": 0,
+    "wall_seconds": 172.0778965999998
+  }
+}

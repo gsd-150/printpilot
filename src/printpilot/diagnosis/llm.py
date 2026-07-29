@@ -23,8 +23,10 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from printpilot.domain import DiagnosisResult, FaultCode, Hypothesis, PhenomenonReport
+from printpilot.harness.trace import DISABLED, Step, Tracer
 from printpilot.llm.base import LLMClient, LLMError
 from printpilot.prompts import Prompt, load_prompt
+from printpilot.rag import KnowledgeStore, Retrieved
 from printpilot.skills_runtime import RouteMatch, SkillRegistry
 
 DEFAULT_PROMPT = "diagnosis/v1_baseline"
@@ -87,6 +89,70 @@ def render_skills(matches: Sequence[RouteMatch]) -> str:
     return "".join(blocks)
 
 
+def render_knowledge(passages: Sequence[Retrieved]) -> str:
+    """Lay out retrieved passages, each with its provenance.
+
+    Citing the source is not decoration. The priority chain says a sourced RAG
+    passage outranks the model's own prior and is outranked by a reviewed Skill —
+    a passage arriving without its evidence level cannot be placed in that order.
+    """
+    if not passages:
+        return ""
+
+    blocks = ["\n\n---\n\n# 检索到的知识\n"]
+    for passage in passages:
+        blocks.append(
+            f"\n## {passage.title}\n"
+            f"\n来源：{passage.source_label}｜相似度 {passage.score:.3f}\n\n"
+            f"{passage.body}\n"
+        )
+    blocks.append("\n（以上为检索证据。优先级低于经审核的 Skill，高于模型自身知识。）\n")
+    return "".join(blocks)
+
+
+#: Feature name plus direction, rendered as the phrase a person would use.
+#:
+#: The first version of the query was ``"flow_tail_mean 0.810；current_delta 0.090"``
+#: — the identifiers and their values. It retrieved badly, and the reason is worth
+#: keeping: the corpus is prose, and a variable name is not what prose calls a
+#: thing. It also meant the retrieval evaluation (written in natural language) was
+#: measuring a query distribution the pipeline never produced.
+_PHRASES: dict[tuple[str, bool], str] = {
+    ("flow_tail_mean", False): "尾段流量比偏低，挤出量不足",
+    ("flow_min", False): "流量出现明显下探",
+    ("flow_deficit_fraction", True): "大部分层都存在挤出亏损",
+    ("flow_tail_deficit_fraction", True): "尾段持续欠挤出，未见恢复",
+    ("current_mean", True): "挤出机电流高于正常",
+    ("current_mean", False): "挤出机电流低于正常",
+    ("current_delta", True): "挤出机电流随打印进程上升，推料阻力增大",
+    ("current_delta", False): "挤出机电流随打印进程下降",
+    ("temp_deviation_tail", True): "热端温度持续偏离设定值",
+    ("temp_bias_tail", True): "热端温度偏高",
+    ("temp_bias_tail", False): "热端温度偏低",
+}
+
+
+def phenomenon_query(report: PhenomenonReport) -> str:
+    """Turn the case into a retrieval query, in the vocabulary of the corpus.
+
+    Built from the features that are *out of band* plus the ones that could not be
+    measured — the anomalies and the blind spots are what knowledge is needed
+    about. Querying with every feature would return the whole corpus.
+    """
+    parts: list[str] = []
+    for feature in report.features:
+        if not feature.exceeded:
+            continue
+        above = feature.threshold is not None and feature.value > feature.threshold
+        parts.append(
+            _PHRASES.get((feature.name, above), f"{feature.name} 异常（{feature.value:.3f}）")
+        )
+
+    if report.uncomputable_features:
+        parts.append("缺少 " + "、".join(report.uncomputable_features) + "，无法据此判别")
+    return "；".join(parts) if parts else "各项特征均在正常带内"
+
+
 @dataclass
 class LLMDiagnoser:
     """Callable with the same shape as the rules baseline, so the eval runner
@@ -104,24 +170,49 @@ class LLMDiagnoser:
     client: LLMClient
     prompt: Prompt = field(default_factory=lambda: load_prompt(DEFAULT_PROMPT))
     skills: SkillRegistry | None = None
+    knowledge: KnowledgeStore | None = None
     top_k: int = 2
     failures: int = 0
+    # A shared module-level default would be a mutable default; and a tracer shared
+    # between diagnosers would merge two runs' events into one file.
+    tracer: Tracer = field(default_factory=lambda: DISABLED)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     @property
     def name(self) -> str:
-        arm = "llm+skills" if self.skills is not None else "llm"
-        return f"{arm}@{self.prompt.name}"
+        parts = ["llm"]
+        if self.knowledge is not None:
+            parts.append("rag")
+        if self.skills is not None:
+            parts.append("skills")
+        return f"{'+'.join(parts)}@{self.prompt.name}"
 
     def __call__(self, report: PhenomenonReport) -> DiagnosisResult:
         rendered = self.prompt.render(phenomenon=render_phenomenon(report))
 
+        # Retrieval before Skills so the injected order runs weakest-evidence
+        # first, matching the priority chain the prompt states.
+        passages: list[Retrieved] = []
+        if self.knowledge is not None:
+            with self.tracer.span(report.case_id, Step.RETRIEVAL) as span:
+                passages = self.knowledge.query(
+                    phenomenon_query(report), top_k=self.top_k, material=report.material
+                )
+                span["chunks"] = [p.card_id for p in passages]
+            rendered += render_knowledge(passages)
+
         selected: list[RouteMatch] = []
         if self.skills is not None:
-            selected = self.skills.route(report, top_k=self.top_k)
+            with self.tracer.span(report.case_id, Step.ROUTING) as span:
+                selected = self.skills.route(report, top_k=self.top_k)
+                span["skills"] = [m.skill.name for m in selected]
+                span["degraded"] = [m.skill.name for m in selected if m.degraded]
             rendered += render_skills(selected)
         try:
-            result = self.client.complete_structured(prompt=rendered, schema=DiagnosisResult)
+            with self.tracer.span(report.case_id, Step.DIAGNOSIS, prompt=self.prompt.name) as span:
+                result = self.client.complete_structured(prompt=rendered, schema=DiagnosisResult)
+                span["predicted"] = result.top.fault_code.value
+                span["confidence"] = round(result.top.confidence, 3)
         except LLMError as exc:
             # Abstain rather than crash the run. A transport failure is not
             # evidence about the print, and silently substituting a guess would
@@ -148,4 +239,6 @@ class LLMDiagnoser:
             # Recorded from what was actually injected, not from what the model
             # says it used — the latter is a claim, this is a fact.
             updates["skills_used"] = [m.skill.name for m in selected]
+        if passages:
+            updates["retrieved_chunk_ids"] = [p.card_id for p in passages]
         return result.model_copy(update=updates) if updates else result

@@ -93,6 +93,7 @@ def run_split(
             confidence=result.top.confidence,
             family_id=case.family_id,
             skills_used=tuple(result.skills_used),
+            retrieved_chunk_ids=tuple(result.retrieved_chunk_ids),
         )
 
     started = time.perf_counter()

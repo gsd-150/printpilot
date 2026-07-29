@@ -45,6 +45,9 @@ class Prediction:
     #: encodes the injected fault.
     family_id: str = ""
     skills_used: tuple[str, ...] = ()
+    #: Which passages were injected. Needed to attribute a retrieval-arm result to
+    #: the chunks responsible; without it a RAG regression cannot be localised.
+    retrieved_chunk_ids: tuple[str, ...] = ()
 
     @property
     def abstained(self) -> bool:

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from printpilot.diagnosis.llm import LLMDiagnoser, render_skills
+from printpilot.diagnosis.llm import LLMDiagnoser, phenomenon_query, render_skills
 from printpilot.domain import (
     DiagnosisResult,
     EvidenceKind,
@@ -21,8 +21,10 @@ from printpilot.domain import (
     PhenomenonReport,
     SignalFeature,
 )
+from printpilot.harness import Step, Tracer
 from printpilot.llm import LLMError, MockLLMClient
 from printpilot.perception import NOMINAL_BANDS
+from printpilot.rag import DeterministicEmbedder, KnowledgeStore, load_cards
 from printpilot.skills_runtime import SkillRegistry
 
 
@@ -132,6 +134,73 @@ class TestSkillInjection:
 
     def test_render_skills_is_empty_without_matches(self) -> None:
         assert render_skills([]) == ""
+
+
+class TestKnowledgeInjection:
+    @pytest.fixture(scope="class")
+    def store(self) -> KnowledgeStore:
+        store = KnowledgeStore(embedder=DeterministicEmbedder())
+        store.build(load_cards())
+        return store
+
+    def test_retrieved_passages_reach_the_prompt_with_provenance(
+        self, store: KnowledgeStore
+    ) -> None:
+        """A passage without its evidence level cannot be placed in the priority
+        chain, so citing it is part of injecting it."""
+        client = MockLLMClient(scripted=[_answer()])
+        LLMDiagnoser(client=client, knowledge=store)(_report(exceeded=["flow_tail_mean"]))
+        prompt = client.calls[0].prompt
+        assert "检索到的知识" in prompt
+        assert "来源：" in prompt
+        assert "优先级低于经审核的 Skill" in prompt
+
+    def test_the_rag_block_is_appended_to_the_same_base_prompt(self, store: KnowledgeStore) -> None:
+        report = _report(exceeded=["flow_tail_mean"])
+        plain = MockLLMClient(scripted=[_answer()])
+        LLMDiagnoser(client=plain)(report)
+        with_rag = MockLLMClient(scripted=[_answer()])
+        LLMDiagnoser(client=with_rag, knowledge=store)(report)
+        assert with_rag.calls[0].prompt.startswith(plain.calls[0].prompt)
+
+    def test_retrieved_ids_are_recorded(self, store: KnowledgeStore) -> None:
+        result = LLMDiagnoser(client=MockLLMClient(scripted=[_answer()]), knowledge=store)(
+            _report(exceeded=["flow_tail_mean"])
+        )
+        assert result.retrieved_chunk_ids
+
+    def test_the_query_is_built_from_anomalies_and_blind_spots(self) -> None:
+        """Only what is out of band, plus what could not be measured. Querying with
+        every feature would return the whole corpus."""
+        query = phenomenon_query(
+            _report(exceeded=["flow_tail_mean"], uncomputable=["current_delta"])
+        )
+        assert "流量" in query
+        assert "current_delta" in query
+        assert "温度" not in query
+
+    def test_the_query_uses_the_corpus_vocabulary_not_identifiers(self) -> None:
+        """The first version emitted `flow_tail_mean 0.810` — the variable name and
+        its value. The corpus is prose, and a variable name is not what prose calls
+        a thing; retrieval was measurably worse for it."""
+        query = phenomenon_query(_report(exceeded=["current_delta"]))
+        assert "挤出机电流" in query
+        assert "current_delta" not in query
+
+    def test_arm_names_distinguish_every_combination(self, store: KnowledgeStore) -> None:
+        registry = SkillRegistry.load()
+        assert LLMDiagnoser(client=MockLLMClient(), knowledge=store).name.startswith("llm+rag@")
+        assert LLMDiagnoser(
+            client=MockLLMClient(), knowledge=store, skills=registry
+        ).name.startswith("llm+rag+skills@")
+
+    def test_tracing_records_retrieval_and_diagnosis(self, store: KnowledgeStore) -> None:
+        tracer = Tracer()
+        LLMDiagnoser(client=MockLLMClient(scripted=[_answer()]), knowledge=store, tracer=tracer)(
+            _report(exceeded=["flow_tail_mean"])
+        )
+        steps = {e.step for e in tracer.events}
+        assert {Step.RETRIEVAL, Step.DIAGNOSIS} <= steps
 
 
 class TestFailureHandling:

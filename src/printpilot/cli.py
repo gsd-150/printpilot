@@ -57,11 +57,18 @@ def _build_diagnoser(name: str, prompt: str | None = None) -> tuple[object, str]
     if name == "rules":
         return diagnose, "rules"
 
-    if name in {"llm", "llm+skills"}:
+    if name.startswith("llm"):
         from printpilot.diagnosis.llm import DEFAULT_PROMPT, LLMDiagnoser
+        from printpilot.harness import Tracer
         from printpilot.llm import OpenAICompatibleClient, load_settings
         from printpilot.prompts import load_prompt
+        from printpilot.rag import KnowledgeStore, OpenAIEmbedder, clean, load_cards
         from printpilot.skills_runtime import SkillRegistry
+
+        arms = set(name.split("+"))
+        if not arms <= {"llm", "rag", "skills"}:
+            print(f"诊断配置 `{name}` 尚未实现。", file=sys.stderr)
+            return None
 
         settings = load_settings()
         if not settings.configured:
@@ -72,16 +79,23 @@ def _build_diagnoser(name: str, prompt: str | None = None) -> tuple[object, str]
             return None
 
         registry: SkillRegistry | None = None
-        if name == "llm+skills":
+        if "skills" in arms:
             registry = SkillRegistry.load()
             if registry.errors:
                 print("Skills 未通过校验，先修复后再消融。", file=sys.stderr)
                 return None
 
+        store: KnowledgeStore | None = None
+        if "rag" in arms:
+            store = KnowledgeStore(embedder=OpenAIEmbedder(settings=settings))
+            store.build(clean(load_cards()).kept)
+
         diagnoser = LLMDiagnoser(
             client=OpenAICompatibleClient(settings=settings),
             prompt=load_prompt(prompt or DEFAULT_PROMPT),
             skills=registry,
+            knowledge=store,
+            tracer=Tracer(),
         )
         return diagnoser, f"{diagnoser.name}|{settings.model}"
 
@@ -137,6 +151,13 @@ def _run_eval(
         )
         path = save_record(record)
         print(f"\n逐案例结果 → {path}")
+
+        tracer = getattr(diagnoser, "tracer", None)
+        if tracer is not None and tracer.events:
+            from printpilot.harness import TRACES_ROOT
+
+            trace_path = tracer.write(TRACES_ROOT / f"{save}.jsonl")
+            print(f"全链路 trace（{len(tracer.events)} 步）→ {trace_path}")
     return EXIT_OK
 
 
@@ -349,7 +370,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_eval = sub.add_parser("eval", help="运行评测")
     p_eval.add_argument("--split", choices=["dev", "holdout", "challenge"], default="dev")
-    p_eval.add_argument("--diagnoser", default="rules", help="rules | llm | llm+rag | llm+skills")
+    p_eval.add_argument(
+        "--diagnoser",
+        default="rules",
+        help="rules | llm | llm+rag | llm+skills | llm+rag+skills",
+    )
     p_eval.add_argument("--data", type=Path, default=DEFAULT_DATASET_ROOT)
     p_eval.add_argument(
         "--limit", type=int, default=None, help="等距抽样 N 条，用于提示词迭代（不可与全量比较）"
