@@ -18,6 +18,7 @@ knowledge-free; it is knowledge-*minimal*.
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field
 
 from printpilot.domain import DiagnosisResult, FaultCode, Hypothesis, PhenomenonReport
@@ -60,11 +61,16 @@ def render_phenomenon(report: PhenomenonReport) -> str:
 @dataclass
 class LLMDiagnoser:
     """Callable with the same shape as the rules baseline, so the eval runner
-    treats the two interchangeably."""
+    treats the two interchangeably.
+
+    Safe to call from several threads: the only mutable state is the failure
+    counter, which is guarded.
+    """
 
     client: LLMClient
     prompt: Prompt = field(default_factory=lambda: load_prompt(DEFAULT_PROMPT))
     failures: int = 0
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     @property
     def name(self) -> str:
@@ -78,7 +84,8 @@ class LLMDiagnoser:
             # Abstain rather than crash the run. A transport failure is not
             # evidence about the print, and silently substituting a guess would
             # contaminate the metrics with the network's behaviour.
-            self.failures += 1
+            with self._lock:
+                self.failures += 1
             return DiagnosisResult(
                 case_id=report.case_id,
                 hypotheses=[

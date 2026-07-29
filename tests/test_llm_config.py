@@ -203,6 +203,21 @@ class TestClientBehaviour:
         client.complete_structured(prompt="p", schema=Answer)
         assert "response_format" not in client._client.completions.calls[0]  # type: ignore[union-attr]
 
+    @pytest.mark.parametrize("mode", list(StructuredMode))
+    def test_every_mode_carries_the_schema_in_the_prompt(self, mode: StructuredMode) -> None:
+        """Including strict json_schema, where it also travels in response_format.
+
+        Dropping the duplicate looked like an obvious saving and was tried. Measured
+        over the same 20 cases: violation rate 9% -> 50%, calls 22 -> 40, tokens
+        99.5k -> 201.7k, because every failure cost a repair round-trip. On this
+        relay the mode is forwarded but not enforced — support and enforcement are
+        different questions, and the probe only established the first.
+        """
+        client = _client(['{"verdict":"ok","count":3}'], structured_mode=mode)
+        client.complete_structured(prompt="p", schema=Answer)
+        system = client._client.completions.calls[0]["messages"][0]["content"]  # type: ignore[union-attr]
+        assert "JSON Schema" in system, mode
+
     def test_temperature_is_pinned_to_zero(self) -> None:
         client = _client(['{"verdict":"ok","count":3}'])
         client.complete_structured(prompt="p", schema=Answer)

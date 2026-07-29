@@ -14,6 +14,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from printpilot import __version__
+from printpilot.harness import DEFAULT_WORKERS
 from printpilot.simulator import DEFAULT_MASTER_SEED, write_dataset
 from printpilot.status import MILESTONES, completion_line
 
@@ -84,9 +85,11 @@ def _run_eval(
     diagnoser_name: str,
     limit: int | None,
     prompt: str | None = None,
+    workers: int | None = None,
 ) -> int:
     from printpilot.eval import format_report, run_split
     from printpilot.eval.runner import stderr_progress
+    from printpilot.harness import format_cost
     from printpilot.simulator import Split
 
     if not (root / split_name / "cases.jsonl").exists():
@@ -98,15 +101,17 @@ def _run_eval(
         return EXIT_NOT_IMPLEMENTED
     diagnoser, display = built
 
-    report = run_split(
+    report, cost = run_split(
         root,
         Split(split_name),
         diagnoser,  # type: ignore[arg-type]
         name=display,
         limit=limit,
+        workers=1 if diagnoser_name == "rules" else workers,
         progress=stderr_progress if diagnoser_name != "rules" else None,
     )
     print(format_report(report))
+    print(format_cost(cost, report.n))
     return EXIT_OK
 
 
@@ -173,6 +178,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument(
         "--prompt", default=None, help="提示词版本，如 diagnosis/v2_rule_out（默认取基线版）"
     )
+    p_eval.add_argument(
+        "--workers", type=int, default=None, help=f"并发上限，默认 {DEFAULT_WORKERS}"
+    )
 
     p_llm = sub.add_parser("llm-check", help="实测所配置端点的连通性与结构化输出能力")
     p_llm.add_argument("--models", action="store_true", help="打印完整可用模型列表")
@@ -193,7 +201,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         case "dataset":
             return _run_dataset(args.out, args.seed)
         case "eval":
-            return _run_eval(args.data, args.split, args.diagnoser, args.limit, args.prompt)
+            return _run_eval(
+                args.data, args.split, args.diagnoser, args.limit, args.prompt, args.workers
+            )
         case "llm-check":
             return _run_llm_check(args.models)
         case "skills":

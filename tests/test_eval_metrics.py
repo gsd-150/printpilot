@@ -124,15 +124,32 @@ class TestRunnerIsolation:
 
     def test_rules_baseline_generalises_to_holdout(self, root: Path) -> None:
         """A guard against a regression that only shows up off the dev split."""
-        report = run_split(root, Split.HOLDOUT, diagnose, name="rules")
+        report, _ = run_split(root, Split.HOLDOUT, diagnose, name="rules")
         assert report.accuracy.point > 0.80
 
     def test_rules_baseline_never_misroutes_a_clog(self, root: Path) -> None:
         for split in Split:
-            report = run_split(root, split, diagnose, name="rules")
+            report, _ = run_split(root, split, diagnose, name="rules")
             assert report.clog_misroute_rate.point == 0.0, f"{split} misrouted a clog"
 
     def test_blinded_challenge_cases_drive_abstention(self, root: Path) -> None:
         """10 of the 30 challenge cases have the discriminating signal removed."""
-        report = run_split(root, Split.CHALLENGE, diagnose, name="rules")
+        report, _ = run_split(root, Split.CHALLENGE, diagnose, name="rules")
         assert report.abstention_rate == pytest.approx(10 / 30)
+
+    def test_concurrency_does_not_change_results(self, root: Path) -> None:
+        """Each case is an independent call; parallelism must be invisible in the
+        scores, or every ablation comparison is confounded by worker count."""
+        serial, _ = run_split(root, Split.DEV, diagnose, name="rules", workers=1)
+        parallel, _ = run_split(root, Split.DEV, diagnose, name="rules", workers=8)
+        assert serial.accuracy == parallel.accuracy
+        assert serial.per_class == parallel.per_class
+
+    def test_subsample_spreads_across_families(self, root: Path) -> None:
+        """A prefix of dev is one fault class; the sample has to reach further."""
+        from printpilot.eval.runner import subsample
+        from printpilot.simulator import load_cases
+
+        cases = load_cases(root, Split.DEV)
+        assert len({c.family_id for c in cases[:20]}) < 5
+        assert len({c.family_id for c in subsample(cases, 20)}) == 20
