@@ -60,9 +60,9 @@ def _build_diagnoser(name: str, prompt: str | None = None) -> tuple[object, str]
     if name.startswith("llm"):
         from printpilot.diagnosis.llm import DEFAULT_PROMPT, LLMDiagnoser
         from printpilot.harness import Tracer
-        from printpilot.llm import OpenAICompatibleClient, load_settings
+        from printpilot.llm import OpenAICompatibleClient, load_embedding_settings, load_settings
         from printpilot.prompts import load_prompt
-        from printpilot.rag import KnowledgeStore, OpenAIEmbedder, clean, load_cards
+        from printpilot.rag import CachedEmbedder, KnowledgeStore, OpenAIEmbedder, clean, load_cards
         from printpilot.skills_runtime import SkillRegistry
 
         arms = set(name.split("+"))
@@ -87,7 +87,11 @@ def _build_diagnoser(name: str, prompt: str | None = None) -> tuple[object, str]
 
         store: KnowledgeStore | None = None
         if "rag" in arms:
-            store = KnowledgeStore(embedder=OpenAIEmbedder(settings=settings))
+            # Embeddings may live on a different host than chat — see
+            # ``load_embedding_settings``. Cached because the corpus and most
+            # queries repeat across runs and the endpoint meters every request.
+            embedder = CachedEmbedder(OpenAIEmbedder(settings=load_embedding_settings()))
+            store = KnowledgeStore(embedder=embedder)
             store.build(clean(load_cards()).kept)
 
         diagnoser = LLMDiagnoser(
@@ -187,8 +191,9 @@ def _run_compare(path_a: Path, path_b: Path) -> int:
 
 
 def _run_rag(action: str, use_mock: bool) -> int:
-    from printpilot.llm import load_settings
+    from printpilot.llm import load_embedding_settings
     from printpilot.rag import (
+        CachedEmbedder,
         DeterministicEmbedder,
         Embedder,
         KnowledgeStore,
@@ -215,11 +220,15 @@ def _run_rag(action: str, use_mock: bool) -> int:
     if use_mock:
         embedder = DeterministicEmbedder()
     else:
-        settings = load_settings()
+        settings = load_embedding_settings()
         if not settings.api_key:
-            print("需要 OPENAI_API_KEY；或加 --mock 用非语义 embedder 打通链路。", file=sys.stderr)
+            print(
+                "需要 PRINTPILOT_EMBEDDING_API_KEY（或共用的 OPENAI_API_KEY）；"
+                "或加 --mock 用非语义 embedder 打通链路。",
+                file=sys.stderr,
+            )
             return EXIT_NOT_IMPLEMENTED
-        embedder = OpenAIEmbedder(settings=settings)
+        embedder = CachedEmbedder(OpenAIEmbedder(settings=settings))
 
     store = KnowledgeStore(embedder=embedder)
     print(f"已索引 {store.build(report.kept)} 条卡片（embedder={embedder.name}）")

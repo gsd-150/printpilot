@@ -80,3 +80,18 @@ def load_settings(env_file: Path | None = None) -> LLMSettings:
         api_key=os.getenv("OPENAI_API_KEY", "").strip(),
         structured_mode=mode,
     )
+
+
+def load_embedding_settings(env_file: Path | None = None) -> LLMSettings:
+    """Settings for the embedding endpoint, which may differ from the chat one.
+
+    Not every chat provider serves embeddings: DeepSeek's official API, for one,
+    has no ``/v1/embeddings``. So chat against one host with embeddings against
+    another is a real deployment shape, not an edge case. The two variables below
+    override the chat endpoint for embedding calls only; left unset, the chat
+    endpoint serves both, which is the original single-relay configuration.
+    """
+    chat = load_settings(env_file)
+    base_url = os.getenv("PRINTPILOT_EMBEDDING_BASE_URL", "").strip() or chat.base_url
+    api_key = os.getenv("PRINTPILOT_EMBEDDING_API_KEY", "").strip() or chat.api_key
+    return chat.model_copy(update={"base_url": base_url, "api_key": api_key})

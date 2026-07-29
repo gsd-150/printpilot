@@ -14,7 +14,9 @@ from printpilot.rag.cards import (
 )
 from printpilot.rag.clean import CleaningReport, clean, similarity
 from printpilot.rag.embedding import (
+    DEFAULT_EMBEDDING_CACHE,
     DEFAULT_EMBEDDING_MODEL,
+    CachedEmbedder,
     DeterministicEmbedder,
     Embedder,
     OpenAIEmbedder,
@@ -30,8 +32,10 @@ from printpilot.rag.store import KnowledgeStore, Retrieved
 __all__ = [
     "ACCEPTED",
     "CANDIDATE",
+    "DEFAULT_EMBEDDING_CACHE",
     "DEFAULT_EMBEDDING_MODEL",
     "KNOWLEDGE_ROOT",
+    "CachedEmbedder",
     "CardParseError",
     "CleaningReport",
     "DeterministicEmbedder",

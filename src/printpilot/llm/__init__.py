@@ -3,7 +3,13 @@
 from __future__ import annotations
 
 from printpilot.llm.base import LLMClient, LLMError, LLMUsage
-from printpilot.llm.config import Backend, LLMSettings, StructuredMode, load_settings
+from printpilot.llm.config import (
+    Backend,
+    LLMSettings,
+    StructuredMode,
+    load_embedding_settings,
+    load_settings,
+)
 from printpilot.llm.mock import MockLLMClient, RecordedCall
 from printpilot.llm.openai_compatible import OpenAICompatibleClient
 
@@ -17,5 +23,6 @@ __all__ = [
     "OpenAICompatibleClient",
     "RecordedCall",
     "StructuredMode",
+    "load_embedding_settings",
     "load_settings",
 ]

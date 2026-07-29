@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 
 from printpilot.rag import (
+    CachedEmbedder,
     CardParseError,
     DeterministicEmbedder,
     EvidenceLevel,
@@ -80,11 +81,12 @@ class TestCardParsing:
             parse_card(CARD.replace("tags: [sample]", "tags: [sample]\ninvented: 1"), "s")
 
 
-class TestShippedCorpus:
-    @pytest.fixture(scope="class")
-    def cards(self) -> list[KnowledgeCard]:
-        return load_cards()
+@pytest.fixture(scope="class")
+def cards() -> list[KnowledgeCard]:
+    return load_cards()
 
+
+class TestShippedCorpus:
     def test_the_corpus_loads(self, cards: list[KnowledgeCard]) -> None:
         assert len(cards) >= 10
 
@@ -153,13 +155,14 @@ class TestCleaning:
         assert similarity("abcdef", "abcxyz") == similarity("abcxyz", "abcdef")
 
 
-class TestStore:
-    @pytest.fixture(scope="class")
-    def store(self) -> KnowledgeStore:
-        store = KnowledgeStore(embedder=DeterministicEmbedder())
-        store.build(load_cards())
-        return store
+@pytest.fixture(scope="class")
+def store() -> KnowledgeStore:
+    built = KnowledgeStore(embedder=DeterministicEmbedder())
+    built.build(load_cards())
+    return built
 
+
+class TestStore:
     def test_indexes_the_whole_corpus(self, store: KnowledgeStore) -> None:
         assert store.size == len(load_cards())
 
@@ -242,3 +245,58 @@ class TestRetrievalMetrics:
         path = tmp_path / "qa.jsonl"
         path.write_text('{"qid":"q1","query":"x","relevant":["a"]}\n', encoding="utf-8")
         assert load_queries(path) == [RetrievalQuery(qid="q1", query="x", relevant=("a",))]
+
+
+class _CountingEmbedder:
+    """Delegates to the deterministic embedder and counts API-shaped calls."""
+
+    def __init__(self) -> None:
+        self._inner = DeterministicEmbedder()
+        self.calls = 0
+
+    @property
+    def name(self) -> str:
+        return "counting-test"
+
+    @property
+    def semantic(self) -> bool:
+        return False
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        self.calls += 1
+        return self._inner.embed(texts)
+
+
+class TestCachedEmbedder:
+    def test_repeats_never_reach_the_inner_embedder(self, tmp_path: Path) -> None:
+        """The metered endpoint is the scarce resource; repeats must cost nothing."""
+        counting = _CountingEmbedder()
+        cached = CachedEmbedder(inner=counting, path=tmp_path / "cache.json")
+        first = cached.embed(["部分堵塞", "电流上升"])
+        second = cached.embed(["部分堵塞", "电流上升"])
+        assert first == second
+        assert counting.calls == 1
+        assert (cached.hits, cached.misses) == (2, 2)
+
+    def test_a_mixed_batch_fetches_only_the_misses(self, tmp_path: Path) -> None:
+        counting = _CountingEmbedder()
+        cached = CachedEmbedder(inner=counting, path=tmp_path / "cache.json")
+        cached.embed(["旧文本"])
+        vectors = cached.embed(["旧文本", "新文本"])
+        assert len(vectors) == 2
+        assert counting.calls == 2
+        assert vectors[0] == cached.embed(["旧文本"])[0]
+
+    def test_cache_survives_a_new_instance(self, tmp_path: Path) -> None:
+        """Runs are separate processes; the value is in persistence."""
+        path = tmp_path / "cache.json"
+        CachedEmbedder(inner=_CountingEmbedder(), path=path).embed(["跨进程"])
+        cold_inner = _CountingEmbedder()
+        CachedEmbedder(inner=cold_inner, path=path).embed(["跨进程"])
+        assert cold_inner.calls == 0
+
+    def test_corrupt_cache_is_a_cold_start_not_a_crash(self, tmp_path: Path) -> None:
+        path = tmp_path / "cache.json"
+        path.write_text("not json at all", encoding="utf-8")
+        cached = CachedEmbedder(inner=_CountingEmbedder(), path=path)
+        assert cached.embed(["损坏后仍可用"])

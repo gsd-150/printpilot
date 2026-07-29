@@ -16,13 +16,20 @@ invite someone to quote a Hit@k produced by it.
 from __future__ import annotations
 
 import hashlib
+import json
+import threading
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Protocol
 
 from printpilot.llm.base import LLMError
 from printpilot.llm.config import LLMSettings
 
 DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
+
+#: Lives under ``.chroma/`` because both are regenerable retrieval artifacts and
+#: that directory is already gitignored.
+DEFAULT_EMBEDDING_CACHE = Path(".chroma/embedding-cache.json")
 
 
 class Embedder(Protocol):
@@ -71,8 +78,81 @@ class DeterministicEmbedder:
 
 
 @dataclass
+class CachedEmbedder:
+    """Wraps any embedder with a persistent text → vector cache.
+
+    Exists because embedding requests are the scarce resource, not embedding
+    latency: the corpus is re-indexed on every run and retrieval queries are
+    rendered from a small phrase vocabulary, so most texts repeat — and the
+    metered endpoint charges (or rate-limits) every repeat. A full ablation run
+    was measured hitting a 100-requests/day free-tier ceiling on calls that were
+    overwhelmingly re-embeddings of identical text.
+
+    The cache key includes the inner embedder's name, so vectors from different
+    models never answer for each other. ``embed`` holds one lock across the API
+    call on purpose: concurrent misses of the same text would each spend quota,
+    and protecting quota is the whole point; serialized embedding latency is
+    noise next to the chat calls that dominate a run.
+    """
+
+    inner: Embedder
+    path: Path = DEFAULT_EMBEDDING_CACHE
+    hits: int = 0
+    misses: int = 0
+    _memory: dict[str, list[float]] = field(default_factory=dict, repr=False)
+    _loaded: bool = field(default=False, repr=False)
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+
+    @property
+    def name(self) -> str:
+        return f"cached:{self.inner.name}"
+
+    @property
+    def semantic(self) -> bool:
+        return self.inner.semantic
+
+    def _key(self, text: str) -> str:
+        material = f"{self.inner.name}\x00{text}".encode()
+        return hashlib.sha256(material).hexdigest()
+
+    def _load(self) -> None:
+        if self._loaded:
+            return
+        self._loaded = True
+        try:
+            raw = json.loads(self.path.read_text(encoding="utf-8"))
+            self._memory = {str(k): [float(x) for x in v] for k, v in raw.items()}
+        except (OSError, ValueError, TypeError):
+            # A missing or corrupt cache is a cold start, not a failure.
+            self._memory = {}
+
+    def _persist(self) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self.path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(self._memory), encoding="utf-8")
+        tmp.replace(self.path)
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        with self._lock:
+            self._load()
+            keys = [self._key(text) for text in texts]
+            missing = [i for i, key in enumerate(keys) if key not in self._memory]
+            self.hits += len(texts) - len(missing)
+            self.misses += len(missing)
+            if missing:
+                fetched = self.inner.embed([texts[i] for i in missing])
+                for index, vector in zip(missing, fetched, strict=True):
+                    self._memory[keys[index]] = vector
+                self._persist()
+            return [self._memory[key] for key in keys]
+
+
+@dataclass
 class OpenAIEmbedder:
-    """Any OpenAI-compatible ``/v1/embeddings`` endpoint."""
+    """Any OpenAI-compatible ``/v1/embeddings`` endpoint.
+
+    Counter updates are not locked; in production this sits behind
+    :class:`CachedEmbedder`, whose lock already serializes calls."""
 
     settings: LLMSettings
     model: str = DEFAULT_EMBEDDING_MODEL

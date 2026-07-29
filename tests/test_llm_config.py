@@ -13,7 +13,13 @@ from typing import Any
 import pytest
 from pydantic import BaseModel, ConfigDict
 
-from printpilot.llm import LLMError, LLMSettings, StructuredMode, load_settings
+from printpilot.llm import (
+    LLMError,
+    LLMSettings,
+    StructuredMode,
+    load_embedding_settings,
+    load_settings,
+)
 from printpilot.llm.config import Backend
 from printpilot.llm.openai_compatible import OpenAICompatibleClient, _parse, _strip_fence
 from printpilot.llm.probe import ModeResult, ProbeReport
@@ -63,6 +69,67 @@ class TestSettingsLoading:
         monkeypatch.delenv("PRINTPILOT_LLM_BASE_URL", raising=False)
         env = _write_env(tmp_path, "PRINTPILOT_LLM_BASE_URL=\n")
         assert load_settings(env).base_url is None
+
+
+class TestEmbeddingSettings:
+    _VARS = (
+        "PRINTPILOT_EMBEDDING_BASE_URL",
+        "PRINTPILOT_EMBEDDING_API_KEY",
+        "PRINTPILOT_LLM_BASE_URL",
+        "OPENAI_API_KEY",
+    )
+
+    def _clear(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        for name in self._VARS:
+            monkeypatch.delenv(name, raising=False)
+
+    def test_unset_embedding_vars_inherit_the_chat_endpoint(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The original single-relay configuration must keep working unchanged."""
+        self._clear(monkeypatch)
+        env = _write_env(
+            tmp_path,
+            "PRINTPILOT_LLM_BASE_URL=https://relay.example/v1\nOPENAI_API_KEY=chat-key\n",
+        )
+        settings = load_embedding_settings(env)
+        assert settings.base_url == "https://relay.example/v1"
+        assert settings.api_key == "chat-key"
+
+    def test_embedding_vars_override_chat_for_embedding_only(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Chat on a host with no /v1/embeddings forces the split configuration."""
+        self._clear(monkeypatch)
+        env = _write_env(
+            tmp_path,
+            "PRINTPILOT_LLM_BASE_URL=https://chat.example/v1\n"
+            "OPENAI_API_KEY=chat-key\n"
+            "PRINTPILOT_EMBEDDING_BASE_URL=https://embed.example/v1\n"
+            "PRINTPILOT_EMBEDDING_API_KEY=embed-key\n",
+        )
+        embedding = load_embedding_settings(env)
+        assert embedding.base_url == "https://embed.example/v1"
+        assert embedding.api_key == "embed-key"
+        chat = load_settings(env)
+        assert chat.base_url == "https://chat.example/v1"
+        assert chat.api_key == "chat-key"
+
+    def test_blank_embedding_vars_fall_back_rather_than_emptying(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A blank line in the template must not send the SDK an empty base_url."""
+        self._clear(monkeypatch)
+        env = _write_env(
+            tmp_path,
+            "PRINTPILOT_LLM_BASE_URL=https://relay.example/v1\n"
+            "OPENAI_API_KEY=chat-key\n"
+            "PRINTPILOT_EMBEDDING_BASE_URL=\n"
+            "PRINTPILOT_EMBEDDING_API_KEY=\n",
+        )
+        settings = load_embedding_settings(env)
+        assert settings.base_url == "https://relay.example/v1"
+        assert settings.api_key == "chat-key"
 
 
 class TestSecrecy:
