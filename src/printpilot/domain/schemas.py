@@ -172,6 +172,11 @@ class ActionType(StrEnum):
     ABORT_PRINT = "abort_print"
     ESCALATE_TO_HUMAN = "escalate_to_human"
 
+    # Doing nothing is an answer. The fault catalogue has always said the correct
+    # response to a recovered transient is no intervention, but the first version
+    # of this enum gave that answer nowhere to go.
+    NO_ACTION = "no_action"
+
 
 class RiskLevel(StrEnum):
     LOW = "low"

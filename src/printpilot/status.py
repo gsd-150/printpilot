@@ -68,8 +68,8 @@ MILESTONES: tuple[Milestone, ...] = (
     ),
     Milestone(
         id="M7",
-        title="Decision + SafetyGate + Execution + 一轮闭环",
-        status=MilestoneStatus.PLANNED,
+        title="Decision + SafetyGate + Execution（闭环 Demo 待接）",
+        status=MilestoneStatus.IN_PROGRESS,
         acceptance="test_safety_gate.py 全绿；闭环 Demo 可跑",
     ),
     Milestone(

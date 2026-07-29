@@ -18,9 +18,12 @@ build/
 datasets/dev/
 datasets/holdout/
 datasets/challenge/
-runs/
 traces/
 .chroma/
+
+# evals/runs/ is deliberately NOT ignored: the per-case records are the evidence
+# behind every number quoted in the reports, and a claim whose backing artefact
+# was thrown away is not reproducible.
 
 # editors
 .idea/
