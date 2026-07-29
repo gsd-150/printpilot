@@ -49,6 +49,24 @@ def _run_dataset(root: Path, seed: int) -> int:
     return EXIT_OK
 
 
+def _run_eval(root: Path, split_name: str, diagnoser_name: str) -> int:
+    from printpilot.diagnosis import diagnose
+    from printpilot.eval import format_report, run_split
+    from printpilot.simulator import Split
+
+    if not (root / split_name / "cases.jsonl").exists():
+        print(f"找不到数据集：{root}/{split_name}/。先运行 `printpilot dataset`。", file=sys.stderr)
+        return EXIT_NOT_IMPLEMENTED
+
+    if diagnoser_name != "rules":
+        print(f"诊断配置 `{diagnoser_name}` 尚未实现，计划在 M4 后半。", file=sys.stderr)
+        return EXIT_NOT_IMPLEMENTED
+
+    report = run_split(root, Split(split_name), diagnose, name=diagnoser_name)
+    print(format_report(report))
+    return EXIT_OK
+
+
 def _not_implemented(command: str, milestone: str) -> int:
     print(f"`printpilot {command}` 尚未实现，计划在 {milestone}。", file=sys.stderr)
     print("当前进度见 `printpilot info`。", file=sys.stderr)
@@ -69,9 +87,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_dataset.add_argument("--seed", type=int, default=DEFAULT_MASTER_SEED)
     p_dataset.add_argument("--out", type=Path, default=DEFAULT_DATASET_ROOT)
 
-    p_eval = sub.add_parser("eval", help="运行评测与消融 (M4)")
+    p_eval = sub.add_parser("eval", help="运行评测")
     p_eval.add_argument("--split", choices=["dev", "holdout", "challenge"], default="dev")
-    p_eval.add_argument("--ablation", default="none")
+    p_eval.add_argument("--diagnoser", default="rules", help="rules | llm | llm+rag | llm+skills")
+    p_eval.add_argument("--data", type=Path, default=DEFAULT_DATASET_ROOT)
 
     p_skills = sub.add_parser("skills", help="Agent Skills 注册表工具 (M5)")
     p_skills.add_argument("action", choices=["list", "validate", "route"])
@@ -89,7 +108,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         case "dataset":
             return _run_dataset(args.out, args.seed)
         case "eval":
-            return _not_implemented("eval", "M4")
+            return _run_eval(args.data, args.split, args.diagnoser)
         case "skills":
             return _not_implemented(f"skills {args.action}", "M5")
         case _:  # pragma: no cover - argparse rejects unknown commands first

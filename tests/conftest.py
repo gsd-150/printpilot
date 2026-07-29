@@ -31,7 +31,6 @@ def clog_report() -> PhenomenonReport:
     """A partial-clog-looking case: flow down *and* extruder current up."""
     return PhenomenonReport(
         case_id="case-0001",
-        scenario_family="clog_partial/pla/box",
         material="PLA",
         features=[
             SignalFeature(

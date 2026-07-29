@@ -79,12 +79,17 @@ class SignalFeature(BaseModel):
 
 
 class PhenomenonReport(BaseModel):
-    """Structured output of the deterministic PerceptionNode."""
+    """Structured output of the deterministic PerceptionNode.
+
+    There is deliberately no ``scenario_family`` field. An earlier draft had one,
+    but a family id encodes the injected fault, so populating it would hand the
+    answer to the diagnosis step through the back door. Material stays: which
+    filament is loaded is something an operator genuinely knows.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     case_id: str = Field(min_length=1)
-    scenario_family: str = Field(min_length=1)
     material: str = Field(min_length=1)
     features: list[SignalFeature] = Field(default_factory=list)
     available_signals: list[str] = Field(default_factory=list)
@@ -93,6 +98,14 @@ class PhenomenonReport(BaseModel):
         description=(
             "Signals this case lacks. Skill routing degrades confidence on these "
             "rather than filtering the skill out entirely."
+        ),
+    )
+    uncomputable_features: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Features that could not be derived because their signal is absent. "
+            "Stated explicitly so a diagnosis can tell 'this looks normal' apart "
+            "from 'I could not measure it' — the distinction abstention rests on."
         ),
     )
 

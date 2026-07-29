@@ -52,10 +52,33 @@ def test_dataset_command_warns_about_label_separation(
     assert "标签不应进入 Agent 上下文" in capsys.readouterr().out
 
 
+def test_eval_runs_the_rules_baseline(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    main(["dataset", "--out", str(tmp_path)])
+    capsys.readouterr()
+
+    assert main(["eval", "--split", "holdout", "--data", str(tmp_path)]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "准确率" in out
+    assert "堵塞误入参数路径" in out
+
+
+def test_eval_without_a_dataset_says_so(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["eval", "--data", str(tmp_path)]) == EXIT_NOT_IMPLEMENTED
+    assert "printpilot dataset" in capsys.readouterr().err
+
+
+def test_eval_rejects_an_unimplemented_diagnoser(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    main(["dataset", "--out", str(tmp_path)])
+    capsys.readouterr()
+    assert main(["eval", "--data", str(tmp_path), "--diagnoser", "llm"]) == EXIT_NOT_IMPLEMENTED
+    assert "尚未实现" in capsys.readouterr().err
+
+
 @pytest.mark.parametrize(
     ("argv", "milestone"),
     [
-        (["eval", "--split", "dev"], "M4"),
         (["skills", "validate"], "M5"),
     ],
 )

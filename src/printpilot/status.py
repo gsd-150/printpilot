@@ -50,8 +50,8 @@ MILESTONES: tuple[Milestone, ...] = (
     ),
     Milestone(
         id="M4",
-        title="LangGraph StateGraph + Perception + Diagnosis 基线",
-        status=MilestoneStatus.PLANNED,
+        title="Perception + 规则基线 + 评测体系（LLM 诊断节点待接入）",
+        status=MilestoneStatus.IN_PROGRESS,
         acceptance="printpilot eval --split dev 输出基线指标",
     ),
     Milestone(
