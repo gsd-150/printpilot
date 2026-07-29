@@ -18,6 +18,10 @@ dependencies = [
     "pyyaml>=6.0",
     "python-dotenv>=1.0",
     "openai>=1.60,<3",
+    # Imported directly by rag/store.py. The import is lazy there to keep startup
+    # cheap for non-RAG commands, but lazy is not optional: the first clean-room
+    # CI run failed on exactly this line being absent.
+    "chromadb>=1.5,<2",
 ]
 
 [project.optional-dependencies]
