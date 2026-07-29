@@ -1,0 +1,453 @@
+{
+  "schema_version": "1.0.0",
+  "name": "holdout-llm-rag-skills-deepseek",
+  "diagnoser": "llm+rag+skills@diagnosis/v1_baseline|deepseek-v4-pro",
+  "split": "holdout",
+  "model": "deepseek-v4-pro",
+  "prompt": "",
+  "dataset_seed": null,
+  "created_at": "2026-07-29T19:08:44+00:00",
+  "predictions": [
+    {
+      "case_id": "holdout-0000",
+      "family_id": "CLOG_PARTIAL/PETG/thin_wall/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.9,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0001",
+      "family_id": "CLOG_PARTIAL/PETG/thin_wall/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.95,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0002",
+      "family_id": "CLOG_PARTIAL/PETG/thin_wall/nominal",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.9,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0003",
+      "family_id": "CLOG_PARTIAL/ABS/lattice/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.9,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0004",
+      "family_id": "CLOG_PARTIAL/ABS/lattice/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.92,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0005",
+      "family_id": "CLOG_PARTIAL/ABS/lattice/low",
+      "predicted": "CLOG_PARTIAL",
+      "truth": "CLOG_PARTIAL",
+      "confidence": 0.95,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0006",
+      "family_id": "CLOG_FULL/PETG/thin_wall/nominal",
+      "predicted": "CLOG_FULL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.95,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0007",
+      "family_id": "CLOG_FULL/PETG/thin_wall/nominal",
+      "predicted": "CLOG_FULL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.95,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0008",
+      "family_id": "CLOG_FULL/PETG/thin_wall/nominal",
+      "predicted": "CLOG_FULL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.9,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0009",
+      "family_id": "CLOG_FULL/ABS/lattice/low",
+      "predicted": "CLOG_FULL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.95,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0010",
+      "family_id": "CLOG_FULL/ABS/lattice/low",
+      "predicted": "CLOG_FULL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.92,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0011",
+      "family_id": "CLOG_FULL/ABS/lattice/low",
+      "predicted": "CLOG_FULL",
+      "truth": "CLOG_FULL",
+      "confidence": 0.95,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0012",
+      "family_id": "UNDEREXT_PARAM/PETG/thin_wall/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.95,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0013",
+      "family_id": "UNDEREXT_PARAM/PETG/thin_wall/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.9,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "moisture-induced-underextrusion",
+        "extruder-current-discrimination"
+      ]
+    },
+    {
+      "case_id": "holdout-0014",
+      "family_id": "UNDEREXT_PARAM/PETG/thin_wall/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.95,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "moisture-induced-underextrusion",
+        "extruder-current-discrimination"
+      ]
+    },
+    {
+      "case_id": "holdout-0015",
+      "family_id": "UNDEREXT_PARAM/ABS/lattice/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.9,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0016",
+      "family_id": "UNDEREXT_PARAM/ABS/lattice/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.9,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0017",
+      "family_id": "UNDEREXT_PARAM/ABS/lattice/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "UNDEREXT_PARAM",
+      "confidence": 0.9,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "moisture-induced-underextrusion",
+        "extruder-current-discrimination"
+      ]
+    },
+    {
+      "case_id": "holdout-0018",
+      "family_id": "THERMAL_DRIFT/PETG/thin_wall/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.85,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "thermal-drift-signature",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0019",
+      "family_id": "THERMAL_DRIFT/PETG/thin_wall/nominal",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.75,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "thermal-drift-signature",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0020",
+      "family_id": "THERMAL_DRIFT/PETG/thin_wall/nominal",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.92,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "moisture-induced-underextrusion",
+        "extruder-current-discrimination"
+      ]
+    },
+    {
+      "case_id": "holdout-0021",
+      "family_id": "THERMAL_DRIFT/ABS/lattice/low",
+      "predicted": "UNDEREXT_PARAM",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.85,
+      "skills_used": [
+        "extrusion-anomaly-triage",
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "extruder-current-discrimination",
+        "moisture-induced-underextrusion"
+      ]
+    },
+    {
+      "case_id": "holdout-0022",
+      "family_id": "THERMAL_DRIFT/ABS/lattice/low",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.85,
+      "skills_used": [
+        "safe-action-selection",
+        "extrusion-anomaly-triage"
+      ],
+      "retrieved_chunk_ids": [
+        "thermal-drift-signature",
+        "extruder-current-discrimination"
+      ]
+    },
+    {
+      "case_id": "holdout-0023",
+      "family_id": "THERMAL_DRIFT/ABS/lattice/low",
+      "predicted": "THERMAL_DRIFT",
+      "truth": "THERMAL_DRIFT",
+      "confidence": 0.9,
+      "skills_used": [
+        "safe-action-selection"
+      ],
+      "retrieved_chunk_ids": [
+        "thermal-drift-signature",
+        "safe-parameter-steps"
+      ]
+    },
+    {
+      "case_id": "holdout-0024",
+      "family_id": "NORMAL_SUSPICIOUS/PETG/thin_wall/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.95,
+      "skills_used": [],
+      "retrieved_chunk_ids": [
+        "clog-partial-signature",
+        "underextrusion-parameter-signature"
+      ]
+    },
+    {
+      "case_id": "holdout-0025",
+      "family_id": "NORMAL_SUSPICIOUS/PETG/thin_wall/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.95,
+      "skills_used": [],
+      "retrieved_chunk_ids": [
+        "clog-partial-signature",
+        "underextrusion-parameter-signature"
+      ]
+    },
+    {
+      "case_id": "holdout-0026",
+      "family_id": "NORMAL_SUSPICIOUS/PETG/thin_wall/nominal",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.85,
+      "skills_used": [],
+      "retrieved_chunk_ids": [
+        "clog-partial-signature",
+        "underextrusion-parameter-signature"
+      ]
+    },
+    {
+      "case_id": "holdout-0027",
+      "family_id": "NORMAL_SUSPICIOUS/ABS/lattice/low",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.95,
+      "skills_used": [],
+      "retrieved_chunk_ids": [
+        "clog-partial-signature",
+        "underextrusion-parameter-signature"
+      ]
+    },
+    {
+      "case_id": "holdout-0028",
+      "family_id": "NORMAL_SUSPICIOUS/ABS/lattice/low",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.95,
+      "skills_used": [],
+      "retrieved_chunk_ids": [
+        "clog-partial-signature",
+        "underextrusion-parameter-signature"
+      ]
+    },
+    {
+      "case_id": "holdout-0029",
+      "family_id": "NORMAL_SUSPICIOUS/ABS/lattice/low",
+      "predicted": "NORMAL_SUSPICIOUS",
+      "truth": "NORMAL_SUSPICIOUS",
+      "confidence": 0.95,
+      "skills_used": [],
+      "retrieved_chunk_ids": [
+        "clog-partial-signature",
+        "underextrusion-parameter-signature"
+      ]
+    }
+  ],
+  "cost": {
+    "calls": 30,
+    "prompt_tokens": 77207,
+    "completion_tokens": 58688,
+    "api_seconds": 860.1293837999981,
+    "schema_violations": 0,
+    "repair_attempts": 0,
+    "transport_failures": 0,
+    "wall_seconds": 114.39416569999958
+  }
+}
