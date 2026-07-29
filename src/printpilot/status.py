@@ -62,8 +62,8 @@ MILESTONES: tuple[Milestone, ...] = (
     ),
     Milestone(
         id="M6",
-        title="单向量后端 + 10–15 张知识卡 + 检索评测",
-        status=MilestoneStatus.PLANNED,
+        title="ChromaDB + 12 张知识卡 + 检索评测（接入诊断待办）",
+        status=MilestoneStatus.VERIFIED,
         acceptance="Hit@k / MRR 为实测值",
     ),
     Milestone(

@@ -24,7 +24,7 @@
 
 ## 当前完成度
 
-**6 / 8 里程碑已验证**（以 `printpilot info` 的运行时输出为准）
+**7 / 8 里程碑已验证**（以 `printpilot info` 的运行时输出为准）
 
 | | 里程碑 | 验收标准 |
 |---|---|---|
@@ -33,7 +33,7 @@
 | ✅ | **M3** 合成遥测环境：故障注入 + 虚拟传感器 + 独立质量评估器 | `printpilot dataset` 产出 160 条 + manifest |
 | ✅ | **M4** 感知层 + 规则基线 + 评测体系 + LLM 诊断节点 | `printpilot eval --split dev` 输出基线指标 |
 | ✅ | **M5** 2 个 Skill + 注册机制 + 接入诊断，dev 消融完成 | `printpilot skills validate` 能拦住坏 Skill |
-| ⬜ | M6 单向量后端 + 知识卡 + 检索评测 | Hit@k / MRR 为实测值 |
+| ✅ | **M6** ChromaDB + 12 张知识卡 + 检索评测 | Hit@k / MRR 为实测值 |
 | ✅ | **M7** Decision + SafetyGate + Execution + 一轮闭环 | `test_safety_gate.py` 全绿；`printpilot loop` 可跑 |
 | ⬜ | M8 消融、Trace、Demo | 五档消融表填满实测值 |
 
@@ -79,6 +79,19 @@ uv run printpilot loop
 仿真器对参数的响应是按物理写的，其中一条尤其重要：**对堵塞提高 flow 不会增加出料，只会抬高推料电流**。所以给误诊的堵塞打补丁会被量化为**造成伤害**，而不只是"没有改善"——否则做错动作和做无用功看起来一样，门禁的价值就无从测量。
 
 完整分析见 [ablation.md](evals/results/ablation.md)。**challenge 划分的 LLM 档尚未运行**，且合成数据使全部指标存在上界——本报告不支持"LLM 在此类任务上总是更差"这一更强的结论。
+
+### 检索评测（12 张知识卡 / 35 条查询，实测）
+
+| Embedder | 语义 | Hit@1 | Hit@3 | Hit@5 | MRR |
+|---|---|---|---|---|---|
+| `text-embedding-3-small` | 是 | **0.800** | **0.943** | **1.000** | **0.878** |
+| `deterministic-trigram-256` | **否** | 0.200 | 0.514 | 0.686 | 0.370 |
+
+第二行**不是可引用的结果**——它是个哈希三元组袋，存在的唯一目的是让检索链路能在无 API key 时被测试（验收要求），并给出"完全没有语义能力时长什么样"的下界。
+
+Hit@k 与 MRR 同报，因为两者失效方式不同：Hit@3 说"正确卡片在窗口内"，MRR 说"它是不是第一条"。稳定排第三的检索器比 Hit@3 看起来更差——上面的都是模型必须读过去的上下文。
+
+详见 [retrieval.md](evals/results/retrieval.md)，含三条局限：语料是自撰而非转录（`source_url` 一律留空，**不填看似合理的链接**）、12 条规模下向量库不是性能选择、评测集与语料出自同一人存在措辞偏置。
 
 ---
 

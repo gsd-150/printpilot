@@ -1,0 +1,35 @@
+{"qid": "q01", "query": "流量比持续偏低，同时挤出机电流在上升，这是什么原因？", "relevant": ["extruder-current-discrimination", "clog-partial-signature"]}
+{"qid": "q02", "query": "怎么区分堵塞和 flow 设定太低？", "relevant": ["extruder-current-discrimination"]}
+{"qid": "q03", "query": "电流正常但是出料不足，能判定为堵塞吗", "relevant": ["extruder-current-discrimination", "underextrusion-parameter-signature"]}
+{"qid": "q04", "query": "挤出机电流的方向说明了什么", "relevant": ["extruder-current-discrimination"]}
+{"qid": "q05", "query": "流量在两三层内掉到接近零", "relevant": ["clog-full-signature"]}
+{"qid": "q06", "query": "完全堵住之后电流为什么反而变低了", "relevant": ["clog-full-signature"]}
+{"qid": "q07", "query": "喷嘴彻底不出料了应该怎么办", "relevant": ["clog-full-signature", "clog-remediation"]}
+{"qid": "q08", "query": "流量在打印中途开始缓慢下降并稳定在一个较低水平", "relevant": ["clog-partial-signature"]}
+{"qid": "q09", "query": "部分堵塞和完全堵塞的区别在哪里", "relevant": ["clog-partial-signature", "clog-full-signature"]}
+{"qid": "q10", "query": "从第一层开始出料就一直偏少，幅度也不变", "relevant": ["underextrusion-parameter-signature"]}
+{"qid": "q11", "query": "提高 flow 百分比能修复什么问题", "relevant": ["underextrusion-parameter-signature", "safe-parameter-steps"]}
+{"qid": "q12", "query": "欠挤出没有起始层说明什么", "relevant": ["underextrusion-parameter-signature"]}
+{"qid": "q13", "query": "热端实测温度一直偏离设定值", "relevant": ["thermal-drift-signature"]}
+{"qid": "q14", "query": "温度补偿应该往哪个方向调", "relevant": ["thermal-drift-signature"]}
+{"qid": "q15", "query": "只知道温度偏差的绝对值，能决定调高还是调低吗", "relevant": ["thermal-drift-signature"]}
+{"qid": "q16", "query": "温度偏低会不会导致挤出量下降", "relevant": ["thermal-drift-signature", "material-process-windows"]}
+{"qid": "q17", "query": "流量掉下去之后又恢复了，要不要处理", "relevant": ["transient-versus-sustained"]}
+{"qid": "q18", "query": "换料造成的流量波动会被误报成故障吗", "relevant": ["transient-versus-sustained"]}
+{"qid": "q19", "query": "判断是不是故障应该看最低点还是看持续时间", "relevant": ["transient-versus-sustained"]}
+{"qid": "q20", "query": "堵塞了能不能靠调参数继续打印", "relevant": ["clog-remediation"]}
+{"qid": "q21", "query": "cold pull 是用来做什么的", "relevant": ["clog-remediation"]}
+{"qid": "q22", "query": "部分堵塞可以先降速缓解吗", "relevant": ["clog-remediation"]}
+{"qid": "q23", "query": "PETG 的热端温度推荐范围是多少", "relevant": ["material-process-windows"]}
+{"qid": "q24", "query": "工艺窗口和硬件边界有什么不同", "relevant": ["material-process-windows", "knowledge-conflict-priority"]}
+{"qid": "q25", "query": "ABS 打印的热床温度大概多少", "relevant": ["material-process-windows"]}
+{"qid": "q26", "query": "单次调整 flow 应该改多少比较安全", "relevant": ["safe-parameter-steps"]}
+{"qid": "q27", "query": "参数回滚应该怎么记录才准确", "relevant": ["safe-parameter-steps"]}
+{"qid": "q28", "query": "缺少挤出机电流数据时应该怎么判断", "relevant": ["sensor-dropout-implications", "extruder-current-discrimination"]}
+{"qid": "q29", "query": "算不出来的特征能当作正常吗", "relevant": ["sensor-dropout-implications"]}
+{"qid": "q30", "query": "什么情况下应该弃权而不是给出结论", "relevant": ["sensor-dropout-implications"]}
+{"qid": "q31", "query": "料丝受潮会有什么表现", "relevant": ["moisture-induced-underextrusion"]}
+{"qid": "q32", "query": "打印时有爆鸣声并且出料时断时续", "relevant": ["moisture-induced-underextrusion"]}
+{"qid": "q33", "query": "几条知识互相矛盾的时候听谁的", "relevant": ["knowledge-conflict-priority"]}
+{"qid": "q34", "query": "Skill 和检索到的资料哪个优先级更高", "relevant": ["knowledge-conflict-priority"]}
+{"qid": "q35", "query": "为什么不能把材料推荐值当成设备极限", "relevant": ["knowledge-conflict-priority", "material-process-windows"]}

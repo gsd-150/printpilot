@@ -165,6 +165,52 @@ def _run_compare(path_a: Path, path_b: Path) -> int:
     return EXIT_OK
 
 
+def _run_rag(action: str, use_mock: bool) -> int:
+    from printpilot.llm import load_settings
+    from printpilot.rag import (
+        DeterministicEmbedder,
+        Embedder,
+        KnowledgeStore,
+        OpenAIEmbedder,
+        clean,
+        evaluate,
+        load_cards,
+        load_queries,
+    )
+
+    cards = load_cards()
+    if not cards:
+        print("知识库为空。", file=sys.stderr)
+        return EXIT_NOT_IMPLEMENTED
+
+    report = clean(cards)
+    print(report.format())
+    print()
+
+    if action == "clean":
+        return EXIT_OK
+
+    embedder: Embedder
+    if use_mock:
+        embedder = DeterministicEmbedder()
+    else:
+        settings = load_settings()
+        if not settings.api_key:
+            print("需要 OPENAI_API_KEY；或加 --mock 用非语义 embedder 打通链路。", file=sys.stderr)
+            return EXIT_NOT_IMPLEMENTED
+        embedder = OpenAIEmbedder(settings=settings)
+
+    store = KnowledgeStore(embedder=embedder)
+    print(f"已索引 {store.build(report.kept)} 条卡片（embedder={embedder.name}）")
+    print()
+
+    if action == "build":
+        return EXIT_OK
+
+    print(evaluate(store, load_queries()).format())
+    return EXIT_OK
+
+
 def _run_loop(seed: str) -> int:
     from printpilot.loop import LoopOutcome, demo_families, run_round
 
@@ -322,6 +368,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_compare.add_argument("run_a", type=Path)
     p_compare.add_argument("run_b", type=Path)
 
+    p_rag = sub.add_parser("rag", help="知识库：清洗、索引、检索评测")
+    p_rag.add_argument("action", choices=["clean", "build", "eval"])
+    p_rag.add_argument(
+        "--mock", action="store_true", help="用非语义 embedder（仅打通链路，指标不可引用）"
+    )
+
     p_loop = sub.add_parser("loop", help="闭环演示：诊断→决策→门禁→执行→重打印→独立评分")
     p_loop.add_argument("--seed", default="demo", help="仿真种子，两轮共用以隔离参数效应")
 
@@ -357,6 +409,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         case "compare":
             return _run_compare(args.run_a, args.run_b)
+        case "rag":
+            return _run_rag(args.action, args.mock)
         case "loop":
             return _run_loop(args.seed)
         case "llm-check":
