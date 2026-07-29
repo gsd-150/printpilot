@@ -1,0 +1,126 @@
+# PrintPilot
+
+**FDM 打印过程异常诊断与安全动作决策系统**
+
+从打印过程遥测中识别挤出异常，区分**可调参修复**与**必须停机维护**两类根因，并在硬安全门禁下给出可审计、可回滚的动作计划。
+
+---
+
+## ⚠️ 边界声明
+
+请先读这一段，再看下面任何内容。
+
+| | |
+|---|---|
+| **数据** | 全部为**合成遥测**，由本仓库的仿真器生成。不是真实产线数据。 |
+| **传感器** | `flow_ratio`、`extruder_current` 等均为**虚拟传感器**。普通消费级 FDM 设备未必直接提供这些信号。 |
+| **硬件** | **不连接、不控制任何真实打印机。** 系统输出的是*建议动作*，不是设备指令。 |
+| **仿真保真度** | 未经实机标定。本项目**不使用"数字孪生"这一表述**——它意味着与真实资产的双向同步和保真度标定，二者本项目都没有。 |
+| **可检测范围** | 只诊断**过程异常与缺陷风险**。翘曲、拉丝、层间结合弱等外观/力学缺陷需要视觉或成品检测才能确认，不在本项目声称范围内。 |
+
+所有指标均来自合成数据，存在上界。任何数字都可由 `datasets/manifest.json` 中记录的种子与场景版本复现。
+
+---
+
+## 当前完成度
+
+**1 / 8 里程碑已验证**（由 `printpilot info` 在运行时报告，非手工维护）
+
+| | 里程碑 | 验收标准 |
+|---|---|---|
+| ✅ | **M1** 工程骨架、schemas、CI、离线 mock LLM | `ruff` + `mypy` + `pytest` 全绿 |
+| ⬜ | M2 LangGraph 官方 Demo 跑通并写笔记 | `docs/decisions/` 有一篇框架笔记 |
+| ⬜ | M3 合成仿真：5 类场景族 + 虚拟传感器 + 独立质量评估器 | `printpilot dataset` 产出 160 条 + manifest |
+| ⬜ | M4 LangGraph StateGraph + Perception + Diagnosis 基线 | `printpilot eval --split dev` 输出基线指标 |
+| ⬜ | M5 2 个 Skill + 注册/校验/路由 + 单测 | `printpilot skills validate` 能拦住坏 Skill |
+| ⬜ | M6 单向量后端 + 知识卡 + 检索评测 | Hit@k / MRR 为实测值 |
+| ⬜ | M7 Decision + SafetyGate + Execution + 一轮闭环 | `test_safety_gate.py` 全绿 |
+| ⬜ | M8 消融、Trace、Demo | 五档消融表填满实测值 |
+
+> 指标表尚未产生任何实测数字。在里程碑标记为已验证之前，本项目不对外声称任何准确率。
+
+---
+
+## 快速开始
+
+需要 Python 3.12 或 3.13。推荐用 [uv](https://docs.astral.sh/uv/)：
+
+```bash
+uv venv --python 3.12
+```
+
+```bash
+uv pip install -e ".[dev]"
+```
+
+```bash
+uv run printpilot info
+```
+
+未安装 uv 时，等价命令为 `py -3.12 -m venv .venv`、`.venv\Scripts\pip install -e ".[dev]"`、`.venv\Scripts\printpilot info`。
+
+**本项目不使用 Makefile 作为复现路径**——目标环境是 Windows，默认没有 GNU Make。上述命令跨平台可用。
+
+### 运行检查
+
+```bash
+uv run ruff check . ; uv run mypy ; uv run pytest
+```
+
+核心测试**不需要 API key**，全部通过 `MockLLMClient` 离线运行。
+
+---
+
+## 设计要点
+
+### 这不是"5 个 Agent"
+
+准确说法是 **3 个 LLM Agent 节点 + 3 个确定性节点组成的混合式 agentic workflow**。LangGraph 官方文档区分 workflow 与 agent：预定路径属前者，能动态决定工具和步骤才是后者。本项目主干是固定顺序，仅在重试/降级/升级处有条件边。把每个 Python 函数都叫 Agent 并不诚实。
+
+| 节点 | 类型 | 说明 |
+|---|---|---|
+| Perception | 纯 Python | 特征提取。确定性任务不调用 LLM。 |
+| Diagnosis | LLM Agent | 带证据与引用；**允许输出 `UNKNOWN`** |
+| Decision | LLM Agent | 产出 `ActionPlan`，**只能提议** |
+| SafetyGate | 纯 Python | 硬约束裁决。LLM 不可绕过。 |
+| Execution | 纯 Python | 写配置、留 diff、可回滚 |
+| Reflection | LLM Agent | 只写候选隔离区，不直接入知识库 |
+
+### 核心任务是一个代价不对称的判断
+
+`CLOG_PARTIAL`（部分堵塞）与 `UNDEREXT_PARAM`（参数性欠挤出）在流量比曲线上很相似，但处置相反：
+
+- 把参数问题误判为堵塞 → 浪费一次停机
+- 把堵塞误判为参数问题 → **向受阻的喷嘴增大流量**，抬高挤出压力、加剧挤出机磨料
+
+因此决策输出不是参数补丁，而是含 `PAUSE_AND_INSPECT` / `MAINTENANCE_REQUIRED` / `ABORT_PRINT` / `ESCALATE_TO_HUMAN` 的五类动作，并由 `SafetyGate` 硬规则保证完全堵塞永远不会被自动调参继续打印。
+
+### 知识冲突优先级
+
+> 硬件安全规则 > 经审核的 Skill > 有来源的 RAG 证据 > LLM 自身知识
+
+被覆盖的低优先级来源记入 trace，不静默丢弃。
+
+---
+
+## 项目结构
+
+```text
+src/printpilot/
+├── domain/          参数、故障目录、节点间契约
+├── llm/             LLM 边界 + 离线 mock
+├── simulator/       合成遥测与故障注入          (M3)
+├── workflow/        LangGraph StateGraph        (M4)
+├── skills_runtime/  Skills 注册、校验、路由      (M5)
+├── rag/             知识库构建、清洗、检索        (M6)
+├── harness/         trace / 降级 / 成本           (M7)
+└── eval/            数据集切分、指标、消融        (M4+)
+```
+
+设计文档见 [项目规划_v2.md](项目规划_v2.md)（v1 保留作为修订对照）。
+
+---
+
+## 许可
+
+MIT，见 [LICENSE](LICENSE)。知识卡片内容基于公开工艺资料自行撰写并注明来源，不整篇转载他人文档。

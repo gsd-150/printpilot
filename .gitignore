@@ -1,0 +1,27 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# secrets — never commit
+.env
+.env.local
+
+# generated artifacts
+datasets/dev/
+datasets/holdout/
+datasets/challenge/
+runs/
+traces/
+.chroma/
+
+# editors
+.idea/
+.vscode/

@@ -1,0 +1,9 @@
+# CI runs on both ubuntu and windows. Normalising to LF in the repository keeps
+# checkouts byte-identical across platforms, so `ruff format --check` cannot fail
+# on one OS and pass on the other.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
