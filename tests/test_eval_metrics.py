@@ -100,13 +100,14 @@ class TestScoring:
         assert "堵塞误入参数路径" in text
 
 
-class TestRunnerIsolation:
-    @pytest.fixture(scope="class")
-    def root(self, tmp_path_factory: pytest.TempPathFactory) -> Path:
-        path = tmp_path_factory.mktemp("eval")
-        write_dataset(path, master_seed=42)
-        return path
+@pytest.fixture(scope="class")
+def root(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    path = tmp_path_factory.mktemp("eval")
+    write_dataset(path, master_seed=42)
+    return path
 
+
+class TestRunnerIsolation:
     def test_diagnoser_never_receives_a_label(self, root: Path) -> None:
         seen: list[object] = []
 

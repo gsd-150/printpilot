@@ -137,6 +137,15 @@ class TestExecution:
         with pytest.raises(ExecutionRefusedError):
             Executor().apply(plan, escalated, START)
 
+    def test_refuses_a_patch_for_a_parameter_with_no_current_value(self) -> None:
+        """SG-3 blocks this upstream, but this class re-checks rather than
+        trusting the caller — and the refusal must be a refusal, not a KeyError."""
+        plan = decide(_diagnosis(FaultCode.UNDEREXT_PARAM), _report())
+        executor = Executor()
+        with pytest.raises(ExecutionRefusedError, match="no current value"):
+            executor.apply(plan, _allow(), {ParamName.NOZZLE_TEMP: 205.0})
+        assert executor.history == []
+
     def test_a_non_patch_action_changes_nothing(self) -> None:
         plan = decide(_diagnosis(FaultCode.CLOG_PARTIAL), _report())
         result = Executor().apply(plan, _allow(), START)

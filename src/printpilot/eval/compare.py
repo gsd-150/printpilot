@@ -97,6 +97,12 @@ def compare_runs(a: RunRecord, b: RunRecord) -> McNemarResult:
     if not shared:
         msg = "the two runs share no case ids"
         raise IncomparableRunsError(msg)
+    if len(shared) != len(left) or len(shared) != len(right):
+        # A --limit run against a full run overlaps on the sampled cases only.
+        # Comparing just the overlap would silently answer a different question,
+        # which is this function's whole reason to refuse things.
+        msg = f"case sets differ: {len(left)} vs {len(right)} cases, only {len(shared)} shared"
+        raise IncomparableRunsError(msg)
 
     both_correct = only_a = only_b = both_wrong = 0
     for case_id in shared:

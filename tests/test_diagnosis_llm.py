@@ -136,13 +136,14 @@ class TestSkillInjection:
         assert render_skills([]) == ""
 
 
-class TestKnowledgeInjection:
-    @pytest.fixture(scope="class")
-    def store(self) -> KnowledgeStore:
-        store = KnowledgeStore(embedder=DeterministicEmbedder())
-        store.build(load_cards())
-        return store
+@pytest.fixture(scope="class")
+def store() -> KnowledgeStore:
+    built = KnowledgeStore(embedder=DeterministicEmbedder())
+    built.build(load_cards())
+    return built
 
+
+class TestKnowledgeInjection:
     def test_retrieved_passages_reach_the_prompt_with_provenance(
         self, store: KnowledgeStore
     ) -> None:

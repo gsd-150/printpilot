@@ -226,6 +226,13 @@ class TestEvidenceInterlock:
         assert verdict.decision is SafetyDecision.ALLOW  # type: ignore[attr-defined]
 
 
+@pytest.fixture(scope="class")
+def holdout_cases(tmp_path_factory: pytest.TempPathFactory) -> dict[str, object]:
+    root = tmp_path_factory.mktemp("gate")
+    write_dataset(root, master_seed=42)
+    return {c.case_id: c for c in load_cases(root, Split.HOLDOUT)}
+
+
 class TestRecordedFailuresAreBlocked:
     """Replay of the diagnoses the model actually produced on holdout.
 
@@ -233,12 +240,6 @@ class TestRecordedFailuresAreBlocked:
     cases, not constructed ones — the strongest available evidence that the gate
     addresses a real failure rather than an imagined one.
     """
-
-    @pytest.fixture(scope="class")
-    def holdout_cases(self, tmp_path_factory: pytest.TempPathFactory) -> dict[str, object]:
-        root = tmp_path_factory.mktemp("gate")
-        write_dataset(root, master_seed=42)
-        return {c.case_id: c for c in load_cases(root, Split.HOLDOUT)}
 
     def test_every_recorded_misroute_is_refused(self, holdout_cases: dict[str, object]) -> None:
         record = load_record(Path("evals/runs/holdout-skills.json"))

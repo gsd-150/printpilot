@@ -148,6 +148,15 @@ class TestRefusals:
         with pytest.raises(IncomparableRunsError, match="share no case ids"):
             compare_runs(a, b)
 
+    def test_partially_overlapping_case_sets(self) -> None:
+        """A --limit run against a full run overlaps on the sampled cases only.
+        Silently comparing just the overlap would answer a different question
+        than the one asked, so it is refused like any other mismatch."""
+        a = _record("a", [(CLOG, CLOG), (PARAM, PARAM)])
+        b = _record("b", [(CLOG, CLOG), (PARAM, PARAM), (FULL, FULL)])
+        with pytest.raises(IncomparableRunsError, match="case sets differ"):
+            compare_runs(a, b)
+
 
 class TestAttribution:
     def test_top_confusions_ranks_the_biggest_mistake_first(self) -> None:

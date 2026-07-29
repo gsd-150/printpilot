@@ -123,11 +123,12 @@ class TestTolerantScan:
         assert scan_tolerant(tmp_path / "nope") == ([], [])
 
 
-class TestRegistrationRules:
-    @pytest.fixture(scope="class")
-    def bad(self) -> SkillRegistry:
-        return SkillRegistry.load(BAD_SKILLS)
+@pytest.fixture(scope="class")
+def bad() -> SkillRegistry:
+    return SkillRegistry.load(BAD_SKILLS)
 
+
+class TestRegistrationRules:
     def _rules(self, registry: SkillRegistry) -> set[str]:
         return {i.rule for i in registry.validate() if i.severity is Severity.ERROR}
 
@@ -191,11 +192,12 @@ class TestRegistrationRules:
         assert SkillRegistry(skills=[a, b]).errors == []
 
 
-class TestRouting:
-    @pytest.fixture(scope="class")
-    def registry(self) -> SkillRegistry:
-        return SkillRegistry.load()
+@pytest.fixture(scope="class")
+def registry() -> SkillRegistry:
+    return SkillRegistry.load()
 
+
+class TestRouting:
     def test_healthy_prints_select_nothing(self, registry: SkillRegistry) -> None:
         """No feature out of band means no procedure applies. Routing must not fire
         on a good print just because the signals are available."""

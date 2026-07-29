@@ -90,6 +90,17 @@ class Executor:
             return result
 
         updated = dict(current)
+        # Checked before anything mutates: the gate's SG-3 refuses plans that
+        # touch a parameter without a current value, but this class re-checks
+        # rather than trusting the caller, and a KeyError is not a refusal.
+        missing = sorted(d.param.value for d in plan.patch if d.param not in updated)
+        if missing:
+            msg = (
+                f"plan for {plan.case_id} patches {', '.join(missing)} "
+                "with no current value to apply the delta to"
+            )
+            raise ExecutionRefusedError(msg)
+
         changes: list[ParamChange] = []
         for delta in plan.patch:
             before = updated[delta.param]

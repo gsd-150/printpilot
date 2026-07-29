@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
+from typing import cast
 
 DEFAULT_WORKERS = 8
 
@@ -75,6 +76,6 @@ def map_bounded[T, R](
             if progress is not None:
                 progress(done, total)
 
-    # None is a legitimate R for some callers, so completion is asserted by count
-    # rather than by testing for None.
-    return [value for value in ordered]  # type: ignore[misc]
+    # None is a legitimate R for some callers, so completion is asserted by the
+    # loop above having filled every slot, not by testing for None.
+    return cast("list[R]", ordered)

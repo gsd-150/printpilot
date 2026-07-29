@@ -41,6 +41,7 @@ from printpilot.simulator import (
     Material,
     NoiseProfile,
     QualityReport,
+    Telemetry,
     evaluate_quality,
     inject,
     sample,
@@ -100,20 +101,27 @@ def _simulate(
     seed: str,
     layer_count: int,
     params: PrintParams,
-) -> object:
-    """Re-run the print. Same seed, so the only difference is the settings."""
+) -> Telemetry:
+    """Re-run the print. Same seed, so the only difference is the settings.
+
+    Fault and noise draw from *derived* sub-seeds rather than two streams built on
+    the same seed — identical streams would correlate the fault's parameters with
+    the sensor noise. (``dataset.py`` avoids this by threading one RNG through
+    both calls; here the two prints of a round must be seeded independently of
+    each other's draw counts, so derivation is the equivalent.)
+    """
     profile = inject(
         family.fault,
         layer_count=layer_count,
         material=family.material,
-        rng=random.Random(seed),
+        rng=random.Random(f"{seed}:inject"),
         params=params,
     )
     return sample(
         profile,
         case_id=case_id,
         noise=family.noise,
-        rng=random.Random(seed),
+        rng=random.Random(f"{seed}:sample"),
         setpoints=dict(MATERIAL_SETPOINTS[family.material]),
         dropped_signals=family.dropped_signals,
     )
@@ -132,8 +140,8 @@ def run_round(
     telemetry = _simulate(
         family, case_id=case_id, seed=seed, layer_count=layer_count, params=before_params
     )
-    report = perceive(telemetry, material=family.material.value)  # type: ignore[arg-type]
-    before = evaluate_quality(telemetry)  # type: ignore[arg-type]
+    report = perceive(telemetry, material=family.material.value)
+    before = evaluate_quality(telemetry)
 
     diagnosis = diagnose(report)
     plan = decide(diagnosis, report)
@@ -193,7 +201,7 @@ def run_round(
     after_telemetry = _simulate(
         family, case_id=case_id, seed=seed, layer_count=layer_count, params=after_params
     )
-    after = evaluate_quality(after_telemetry)  # type: ignore[arg-type]
+    after = evaluate_quality(after_telemetry)
 
     change = after.score - before.score
     if change > SIGNIFICANT_QUALITY_CHANGE:
