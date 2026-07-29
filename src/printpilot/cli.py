@@ -67,6 +67,39 @@ def _run_eval(root: Path, split_name: str, diagnoser_name: str) -> int:
     return EXIT_OK
 
 
+def _run_llm_check(show_models: bool) -> int:
+    from printpilot.llm import load_settings
+    from printpilot.llm.probe import format_probe, list_models, probe
+
+    settings = load_settings()
+    print(f"配置：{settings.describe()}\n")
+
+    if not settings.api_key:
+        print("需要在 .env 中填写 OPENAI_API_KEY。", file=sys.stderr)
+        return EXIT_NOT_IMPLEMENTED
+
+    # Listing models is how you find out what to put in PRINTPILOT_LLM_MODEL, so
+    # it must work before that variable is set.
+    if not settings.model:
+        available = list_models(settings)
+        if not available:
+            print("端点未提供 /v1/models，请查阅供应商文档后填写模型 id。", file=sys.stderr)
+            return EXIT_NOT_IMPLEMENTED
+        print(f"端点可用模型共 {len(available)} 个：")
+        for name in available:
+            print(f"  {name}")
+        print("\n在 .env 中设置 PRINTPILOT_LLM_MODEL=<其中之一> 后重新运行。", file=sys.stderr)
+        return EXIT_NOT_IMPLEMENTED
+
+    report = probe(settings)
+    print(format_probe(settings, report))
+    if show_models and report.models:
+        print("\n完整模型列表：")
+        for name in report.models:
+            print(f"  {name}")
+    return EXIT_OK if report.best_mode else EXIT_NOT_IMPLEMENTED
+
+
 def _not_implemented(command: str, milestone: str) -> int:
     print(f"`printpilot {command}` 尚未实现，计划在 {milestone}。", file=sys.stderr)
     print("当前进度见 `printpilot info`。", file=sys.stderr)
@@ -92,6 +125,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument("--diagnoser", default="rules", help="rules | llm | llm+rag | llm+skills")
     p_eval.add_argument("--data", type=Path, default=DEFAULT_DATASET_ROOT)
 
+    p_llm = sub.add_parser("llm-check", help="实测所配置端点的连通性与结构化输出能力")
+    p_llm.add_argument("--models", action="store_true", help="打印完整可用模型列表")
+
     p_skills = sub.add_parser("skills", help="Agent Skills 注册表工具 (M5)")
     p_skills.add_argument("action", choices=["list", "validate", "route"])
 
@@ -109,6 +145,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _run_dataset(args.out, args.seed)
         case "eval":
             return _run_eval(args.data, args.split, args.diagnoser)
+        case "llm-check":
+            return _run_llm_check(args.models)
         case "skills":
             return _not_implemented(f"skills {args.action}", "M5")
         case _:  # pragma: no cover - argparse rejects unknown commands first
