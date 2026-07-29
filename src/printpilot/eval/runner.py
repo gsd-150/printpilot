@@ -11,6 +11,7 @@ import sys
 import threading
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 from printpilot.domain import DiagnosisResult, PhenomenonReport
@@ -22,6 +23,20 @@ from printpilot.simulator import CaseInput, Split, load_cases, load_labels
 type Diagnoser = Callable[[PhenomenonReport], DiagnosisResult]
 
 _progress_lock = threading.Lock()
+
+
+@dataclass(frozen=True)
+class RunResult:
+    """Summary, cost, and the individual predictions.
+
+    The predictions were previously discarded once scored, which made paired
+    comparison and error attribution impossible after the fact — the two things
+    most worth doing with an ablation.
+    """
+
+    report: EvalReport
+    cost: RunCost
+    predictions: list[Prediction]
 
 
 def stderr_progress(done: int, total: int) -> None:
@@ -56,7 +71,7 @@ def run_split(
     limit: int | None = None,
     workers: int | None = None,
     progress: Callable[[int, int], None] | None = None,
-) -> tuple[EvalReport, RunCost]:
+) -> RunResult:
     """Score one configuration on one split.
 
     ``limit`` subsamples for prompt iteration. Results from a subsampled run are
@@ -76,6 +91,8 @@ def run_split(
             predicted=result.top.fault_code,
             truth=truth[case.case_id],
             confidence=result.top.confidence,
+            family_id=case.family_id,
+            skills_used=tuple(result.skills_used),
         )
 
     started = time.perf_counter()
@@ -83,4 +100,8 @@ def run_split(
     elapsed = time.perf_counter() - started
 
     label = split.value if limit is None else f"{split.value}[:{limit}]"
-    return score(predictions, diagnoser=name, split=label), collect_cost(diagnoser, elapsed)
+    return RunResult(
+        report=score(predictions, diagnoser=name, split=label),
+        cost=collect_cost(diagnoser, elapsed),
+        predictions=predictions,
+    )

@@ -41,6 +41,10 @@ class Prediction:
     predicted: FaultCode
     truth: FaultCode
     confidence: float
+    #: Carried for error attribution, never shown to a diagnoser — a family id
+    #: encodes the injected fault.
+    family_id: str = ""
+    skills_used: tuple[str, ...] = ()
 
     @property
     def abstained(self) -> bool:

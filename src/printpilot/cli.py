@@ -96,6 +96,7 @@ def _run_eval(
     limit: int | None,
     prompt: str | None = None,
     workers: int | None = None,
+    save: str | None = None,
 ) -> int:
     from printpilot.eval import format_report, run_split
     from printpilot.eval.runner import stderr_progress
@@ -111,7 +112,7 @@ def _run_eval(
         return EXIT_NOT_IMPLEMENTED
     diagnoser, display = built
 
-    report, cost = run_split(
+    result = run_split(
         root,
         Split(split_name),
         diagnoser,  # type: ignore[arg-type]
@@ -120,8 +121,47 @@ def _run_eval(
         workers=1 if diagnoser_name == "rules" else workers,
         progress=stderr_progress if diagnoser_name != "rules" else None,
     )
-    print(format_report(report))
-    print(format_cost(cost, report.n))
+    print(format_report(result.report))
+    print(format_cost(result.cost, result.report.n))
+
+    if save:
+        from printpilot.eval import build_record, save_record
+
+        record = build_record(
+            name=save,
+            report=result.report,
+            predictions=result.predictions,
+            cost=result.cost,
+            model=_model_name(diagnoser_name),
+            prompt=prompt or "",
+        )
+        path = save_record(record)
+        print(f"\n逐案例结果 → {path}")
+    return EXIT_OK
+
+
+def _model_name(diagnoser_name: str) -> str:
+    """Recorded so a later comparison can refuse runs made with different models.
+
+    Empty for the rules arm — it uses no model, and a placeholder like "n/a" would
+    read as a *different* model and block the rules-vs-LLM comparison, which is the
+    one the whole ablation is built around.
+    """
+    if diagnoser_name == "rules":
+        return ""
+    from printpilot.llm import load_settings
+
+    return load_settings().model
+
+
+def _run_compare(path_a: Path, path_b: Path) -> int:
+    from printpilot.eval import IncomparableRunsError, format_comparison, load_record
+
+    try:
+        print(format_comparison(load_record(path_a), load_record(path_b)))
+    except IncomparableRunsError as exc:
+        print(f"无法比较：{exc}", file=sys.stderr)
+        return EXIT_NOT_IMPLEMENTED
     return EXIT_OK
 
 
@@ -258,6 +298,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument(
         "--workers", type=int, default=None, help=f"并发上限，默认 {DEFAULT_WORKERS}"
     )
+    p_eval.add_argument(
+        "--save", default=None, help="把逐案例结果存为 evals/runs/<名称>.json，供配对比较"
+    )
+
+    p_compare = sub.add_parser("compare", help="两次运行的配对比较（McNemar）与错误归因")
+    p_compare.add_argument("run_a", type=Path)
+    p_compare.add_argument("run_b", type=Path)
 
     p_llm = sub.add_parser("llm-check", help="实测所配置端点的连通性与结构化输出能力")
     p_llm.add_argument("--models", action="store_true", help="打印完整可用模型列表")
@@ -281,8 +328,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _run_dataset(args.out, args.seed)
         case "eval":
             return _run_eval(
-                args.data, args.split, args.diagnoser, args.limit, args.prompt, args.workers
+                args.data,
+                args.split,
+                args.diagnoser,
+                args.limit,
+                args.prompt,
+                args.workers,
+                args.save,
             )
+        case "compare":
+            return _run_compare(args.run_a, args.run_b)
         case "llm-check":
             return _run_llm_check(args.models)
         case "skills":

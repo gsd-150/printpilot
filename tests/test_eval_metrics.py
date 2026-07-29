@@ -124,26 +124,33 @@ class TestRunnerIsolation:
 
     def test_rules_baseline_generalises_to_holdout(self, root: Path) -> None:
         """A guard against a regression that only shows up off the dev split."""
-        report, _ = run_split(root, Split.HOLDOUT, diagnose, name="rules")
-        assert report.accuracy.point > 0.80
+        assert run_split(root, Split.HOLDOUT, diagnose, name="rules").report.accuracy.point > 0.80
 
     def test_rules_baseline_never_misroutes_a_clog(self, root: Path) -> None:
         for split in Split:
-            report, _ = run_split(root, split, diagnose, name="rules")
-            assert report.clog_misroute_rate.point == 0.0, f"{split} misrouted a clog"
+            result = run_split(root, split, diagnose, name="rules")
+            assert result.report.clog_misroute_rate.point == 0.0, f"{split} misrouted a clog"
 
     def test_blinded_challenge_cases_drive_abstention(self, root: Path) -> None:
         """10 of the 30 challenge cases have the discriminating signal removed."""
-        report, _ = run_split(root, Split.CHALLENGE, diagnose, name="rules")
-        assert report.abstention_rate == pytest.approx(10 / 30)
+        result = run_split(root, Split.CHALLENGE, diagnose, name="rules")
+        assert result.report.abstention_rate == pytest.approx(10 / 30)
+
+    def test_predictions_are_retained_for_later_analysis(self, root: Path) -> None:
+        """Discarding them once scored made paired comparison impossible after the
+        fact — the most useful thing to do with an ablation."""
+        result = run_split(root, Split.HOLDOUT, diagnose, name="rules")
+        assert len(result.predictions) == 30
+        assert all(p.family_id for p in result.predictions)
 
     def test_concurrency_does_not_change_results(self, root: Path) -> None:
         """Each case is an independent call; parallelism must be invisible in the
         scores, or every ablation comparison is confounded by worker count."""
-        serial, _ = run_split(root, Split.DEV, diagnose, name="rules", workers=1)
-        parallel, _ = run_split(root, Split.DEV, diagnose, name="rules", workers=8)
-        assert serial.accuracy == parallel.accuracy
-        assert serial.per_class == parallel.per_class
+        serial = run_split(root, Split.DEV, diagnose, name="rules", workers=1)
+        parallel = run_split(root, Split.DEV, diagnose, name="rules", workers=8)
+        assert serial.report.accuracy == parallel.report.accuracy
+        assert serial.report.per_class == parallel.report.per_class
+        assert serial.predictions == parallel.predictions
 
     def test_subsample_spreads_across_families(self, root: Path) -> None:
         """A prefix of dev is one fault class; the sample has to reach further."""
