@@ -82,3 +82,11 @@ LangGraph 官方文档区分：**预定路径的叫 workflow，能动态决定�
 按这个标准，PrintPilot 是 **3 个 LLM Agent 节点 + 3 个确定性节点组成的混合式 agentic workflow**，不是"5 个 Agent 的多智能体系统"。主干顺序固定，只在重试、降级、安全升级处有条件边。
 
 对外一律用前一种说法。把每个 Python 函数都叫 Agent 经不起追问。
+
+### 2026-07-30 补记：节点计数以实现为准
+
+上文"3 个 LLM Agent 节点 + 3 个确定性节点"按**设计**计数，2026-07-30 盘点时实现与之不符：LLM Agent 节点只有 1 个（Diagnosis 的 `LLMDiagnoser`），Decision 仅规则实现，Reflection 未实现，管线也未装配成 `StateGraph`（节点是普通 Python 顺序调用，LangGraph 的实际使用止于本 ADR 的选型实测、CI smoke test 与 `validating_node` 契约包装）。
+
+同日补齐三件：Reflection（`reflection/agent.py`，产物只写 `knowledge/candidate_cases/` 隔离区）；LLM Decision（`decision/llm.py`，消融臂——规则版仍为默认，依据是消融中规则的严格支配）；`workflow/graph.py` 的 StateGraph 装配（闭环每轮经图运行，五节点全部过 `validating_node`，唯一条件边在门禁裁决处）。至此设计的 3 + 3 节点全部落地。
+
+两条教训入档：节点计数以实现为准；"依赖里有框架"与"框架在编排"是两种陈述，混用任何一种都经不起追问。README 已同步。

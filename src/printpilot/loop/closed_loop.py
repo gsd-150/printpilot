@@ -21,21 +21,18 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Any
 
-from printpilot.decision import decide
-from printpilot.diagnosis import diagnose
 from printpilot.domain import (
     ActionPlan,
     ActionType,
     DiagnosisResult,
     FaultCode,
     ParamName,
+    PhenomenonReport,
     SafetyDecision,
     SafetyVerdict,
 )
-from printpilot.execution import Executor
-from printpilot.perception import perceive
-from printpilot.safety import GateContext, review
 from printpilot.simulator import (
     MATERIAL_SETPOINTS,
     Material,
@@ -48,6 +45,7 @@ from printpilot.simulator import (
 )
 from printpilot.simulator.fault_injection import PrintParams
 from printpilot.simulator.scenario import Geometry, ScenarioFamily
+from printpilot.workflow import PipelineState, run_pipeline
 
 #: Quality change smaller than this is noise, not an effect.
 SIGNIFICANT_QUALITY_CHANGE = 0.02
@@ -64,6 +62,9 @@ class LoopOutcome(StrEnum):
 @dataclass(frozen=True)
 class LoopResult:
     case_id: str
+    #: What perception measured — carried so a later consumer (reflection) works
+    #: from the same record the diagnoser saw, not from a re-derivation.
+    report: PhenomenonReport
     diagnosis: DiagnosisResult
     plan: ActionPlan
     verdict: SafetyVerdict
@@ -134,17 +135,22 @@ def run_round(
     seed: str,
     layer_count: int = 60,
     params: PrintParams | None = None,
+    pipeline: Any | None = None,
 ) -> LoopResult:
-    """Run one full round on a freshly simulated print."""
+    """Run one full round on a freshly simulated print.
+
+    The perceive → diagnose → decide → gate → execute stretch runs as the
+    compiled ``StateGraph`` (:func:`printpilot.workflow.build_pipeline`);
+    ``pipeline`` swaps in a graph with different node implementations, e.g. an
+    LLM decider. The simulation on either side stays outside the graph — the
+    re-print and the independent judge are the harness measuring the pipeline,
+    not part of it.
+    """
     before_params = params or PrintParams()
     telemetry = _simulate(
         family, case_id=case_id, seed=seed, layer_count=layer_count, params=before_params
     )
-    report = perceive(telemetry, material=family.material.value)
     before = evaluate_quality(telemetry)
-
-    diagnosis = diagnose(report)
-    plan = decide(diagnosis, report)
 
     current = {
         ParamName.FLOW: before_params.flow_percent,
@@ -153,19 +159,25 @@ def run_round(
         ),
         ParamName.BED_TEMP: MATERIAL_SETPOINTS[family.material]["bed_temp"],
     }
-    verdict = review(
-        GateContext(
-            plan=plan,
-            diagnosis=diagnosis,
-            report=report,
-            current_params=current,
+    final = run_pipeline(
+        PipelineState(
+            case_id=case_id,
             material=family.material.value,
-        )
+            current_params=current,
+            telemetry=telemetry,
+        ),
+        graph=pipeline,
     )
+    report, diagnosis = final.report, final.diagnosis
+    plan, verdict = final.plan, final.verdict
+    # The graph runs these four nodes on every route; None here is a wiring bug.
+    assert report is not None and diagnosis is not None
+    assert plan is not None and verdict is not None
 
     if verdict.decision is not SafetyDecision.ALLOW:
         return LoopResult(
             case_id=case_id,
+            report=report,
             diagnosis=diagnosis,
             plan=plan,
             verdict=verdict,
@@ -179,6 +191,7 @@ def run_round(
     if plan.action_type is not ActionType.APPLY_PARAM_PATCH:
         return LoopResult(
             case_id=case_id,
+            report=report,
             diagnosis=diagnosis,
             plan=plan,
             verdict=verdict,
@@ -189,7 +202,8 @@ def run_round(
             params_after=before_params,
         )
 
-    applied = Executor().apply(plan, verdict, current)
+    applied = final.execution
+    assert applied is not None  # the allow-and-patch route always executes
     after_params = PrintParams(
         flow_percent=applied.params[ParamName.FLOW],
         nozzle_temp_offset=applied.params[ParamName.NOZZLE_TEMP]
@@ -213,6 +227,7 @@ def run_round(
 
     return LoopResult(
         case_id=case_id,
+        report=report,
         diagnosis=diagnosis,
         plan=plan,
         verdict=verdict,

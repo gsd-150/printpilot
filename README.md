@@ -90,6 +90,10 @@ uv run printpilot loop
 
 诊断 → 决策 → 门禁 → 执行 → **用新参数重新打印** → 由独立质量函数评分。同一随机种子跑两轮，因此第二轮的差异只来自参数，不来自噪声。
 
+加 `--reflect` 后，每轮结束由 Reflection 节点（LLM）把全轮记录写成候选知识卡片，落入 `knowledge/candidate_cases/` 隔离区——RAG 索引读不到那里，入库需人工审批（流程见 [knowledge/README.md](knowledge/README.md)）。复盘的输入不含注入故障的 ground truth：把答案写进语料再喂回诊断，正是数据集设计要防的泄漏。
+
+加 `--decider llm` 则换用 LLM 决策消融臂：LLM 提议动作计划，门禁照常裁决，汇总打印门禁对 LLM 提案的裁决计数——"提议与放行是两回事"从架构声明变成每轮发生的可测事实。它的底线钉在离线测试里：LLM 给堵塞开出的参数补丁，无论多么自洽，永远到不了执行节点（`tests/test_decision_llm.py`）。
+
 仿真器对参数的响应是按物理写的，其中一条尤其重要：**对堵塞提高 flow 不会增加出料，只会抬高推料电流**。所以给误诊的堵塞打补丁会被量化为**造成伤害**，而不只是"没有改善"——否则做错动作和做无用功看起来一样，门禁的价值就无从测量。
 
 完整分析见 [ablation.md](evals/results/ablation.md)。**`challenge` 的 `llm+RAG` 一档未跑**（表中留空而非估算；该格已在下方 deepseek-v4-pro 复现组补测：0.333）；合成数据使全部指标存在上界——本报告不支持"LLM 在此类任务上总是更差"这一更强的结论。
@@ -161,16 +165,18 @@ uv run ruff check . ; uv run mypy ; uv run pytest
 
 ### 这不是"5 个 Agent"
 
-准确说法是 **3 个 LLM Agent 节点 + 3 个确定性节点组成的混合式 agentic workflow**。LangGraph 官方文档区分 workflow 与 agent：预定路径属前者，能动态决定工具和步骤才是后者。本项目主干是固定顺序，仅在重试/降级/升级处有条件边。把每个 Python 函数都叫 Agent 并不诚实。
+LangGraph 官方文档区分 workflow 与 agent：预定路径属前者，能动态决定工具和步骤才是后者。按这个标准，本项目是混合式 workflow。设计的六个节点已全部实现：**3 个 LLM Agent 节点（Diagnosis、Decision、Reflection）+ 3 个纯 Python 节点（Perception、SafetyGate、Execution）**，其中 Decision 是双实现——规则版为默认，LLM 版为消融臂。**默认管线是全确定性的**（规则诊断 + 规则决策），LLM 分别经 `eval --diagnoser llm*`、`loop --decider llm`、`loop --reflect` 进入对应节点；这个默认由消融证据决定（规则严格支配，见上），不是框架偏好。把每个 Python 函数都叫 Agent 并不诚实；本节曾在两个 LLM 节点还不存在时就写"3 个 LLM Agent 节点"，同样不诚实——已更正并于同日补齐实现（见 [ADR 0001](docs/decisions/0001-agent-framework.md) 补记）。
 
-| 节点 | 类型 | 说明 |
+| 节点 | 实现 | 说明 |
 |---|---|---|
-| Perception | 纯 Python | 特征提取。确定性任务不调用 LLM。 |
-| Diagnosis | LLM Agent | 带证据与引用；**允许输出 `UNKNOWN`** |
-| Decision | LLM Agent | 产出 `ActionPlan`，**只能提议** |
-| SafetyGate | 纯 Python | 硬约束裁决。LLM 不可绕过。 |
-| Execution | 纯 Python | 写配置、留 diff、可回滚 |
-| Reflection | LLM Agent | 只写候选隔离区，不直接入知识库 |
+| Perception | ✅ 纯 Python | 特征提取。确定性任务不调用 LLM。 |
+| Diagnosis | ✅ LLM Agent（`LLMDiagnoser`，另有规则基线） | 带证据与引用；**允许输出 `UNKNOWN`** |
+| Decision | ✅ 双实现 | 产出 `ActionPlan`，**只能提议**；规则版默认，LLM 版为消融臂（`loop --decider llm`） |
+| SafetyGate | ✅ 纯 Python | 硬约束裁决。LLM 不可绕过。 |
+| Execution | ✅ 纯 Python | 写配置、留 diff、可回滚 |
+| Reflection | ✅ LLM Agent（`Reflector`） | `loop --reflect` 复盘全轮；只写 `knowledge/candidate_cases/` 隔离区，审批后才入库 |
+
+管线**已装配成 `StateGraph`**（[workflow/graph.py](src/printpilot/workflow/graph.py)）：闭环每轮经图运行，五个节点全部经 `validating_node` 包装（框架不校验节点写回，是实测缺口），唯一的条件边在门禁裁决处——被拒绝或无事可执行的回合，永远到不了 execute 节点。留在图外的东西也是刻意的：重打印与独立评分是测量管线的 harness，不属于管线；eval runner 评测的是诊断器而非全管线，不走图。
 
 ### 核心任务是一个代价不对称的判断
 
@@ -231,14 +237,15 @@ src/printpilot/
 ├── simulator/       故障注入、虚拟传感器、独立质量评估器
 ├── perception/      确定性特征提取与 dev 标定的正常带
 ├── diagnosis/       规则基线 + LLM 诊断（Skills 注入）
-├── decision/        根因 → 动作计划
+├── decision/        根因 → 动作计划（规则默认 + LLM 消融臂）
 ├── safety/          SafetyGate：五条一致性规则 + 证据联锁
 ├── execution/       应用补丁、diff、精确回滚
 ├── loop/            闭环：重打印 + 独立评分
+├── reflection/      复盘：全轮 → 候选知识卡，只写 candidate_cases/ 隔离区
 ├── skills_runtime/  Skills 注册、校验、路由
 ├── rag/             知识卡片、清洗、embedding、ChromaDB、检索评测
 ├── harness/         有界并发、成本核算、全链路 Trace
-├── workflow/        节点契约校验（LangGraph）
+├── workflow/        StateGraph 装配（五节点 + 门禁条件边）+ 节点契约校验
 └── eval/            指标、bootstrap、McNemar 配对、逐案例记录
 ```
 

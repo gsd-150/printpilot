@@ -1,11 +1,22 @@
-"""LangGraph workflow assembly.
+"""Workflow: the LangGraph pipeline assembly, and the node-boundary validation.
 
-The graph itself lands in M4; this package currently holds the node-boundary
-validation that the M2 framework evaluation showed was necessary.
+``graph`` assembles perceive → diagnose → decide → safety_gate → execute into
+a ``StateGraph`` whose only conditional edge routes on the gate's verdict; the
+closed loop runs every round through it. ``validation`` guards what nodes
+write back — the M2 finding that LangGraph re-validates state only at
+``invoke()`` — and every node in the assembly is wrapped in it.
 """
 
 from __future__ import annotations
 
+from printpilot.workflow.graph import (
+    Decider,
+    Diagnoser,
+    PipelineState,
+    build_pipeline,
+    default_pipeline,
+    run_pipeline,
+)
 from printpilot.workflow.validation import (
     NodeContractError,
     StateNodeFn,
@@ -13,4 +24,15 @@ from printpilot.workflow.validation import (
     validating_node,
 )
 
-__all__ = ["NodeContractError", "StateNodeFn", "StateUpdate", "validating_node"]
+__all__ = [
+    "Decider",
+    "Diagnoser",
+    "NodeContractError",
+    "PipelineState",
+    "StateNodeFn",
+    "StateUpdate",
+    "build_pipeline",
+    "default_pipeline",
+    "run_pipeline",
+    "validating_node",
+]

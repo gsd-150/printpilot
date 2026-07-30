@@ -20,6 +20,8 @@ datasets/holdout/
 datasets/challenge/
 traces/
 .chroma/
+# per-directory code maps for local navigation, regenerable at will
+_MAP.md
 
 # evals/runs/ is deliberately NOT ignored: the per-case records are the evidence
 # behind every number quoted in the reports, and a claim whose backing artefact

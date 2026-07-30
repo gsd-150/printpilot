@@ -38,6 +38,7 @@ class Step(StrEnum):
     SAFETY = "safety"
     EXECUTION = "execution"
     QUALITY = "quality"
+    REFLECTION = "reflection"
 
 
 @dataclass(frozen=True)

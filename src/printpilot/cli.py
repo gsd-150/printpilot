@@ -13,11 +13,17 @@ import io
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from printpilot import __version__
 from printpilot.harness import DEFAULT_WORKERS
 from printpilot.simulator import DEFAULT_MASTER_SEED, write_dataset
 from printpilot.status import MILESTONES, completion_line
+
+if TYPE_CHECKING:
+    from printpilot.decision.llm import LLMDecider
+    from printpilot.loop import LoopResult
+    from printpilot.reflection import Reflector
 
 EXIT_OK = 0
 EXIT_NOT_IMPLEMENTED = 2
@@ -106,6 +112,36 @@ def _build_diagnoser(name: str, prompt: str | None = None) -> tuple[object, str]
 
     print(f"诊断配置 `{name}` 尚未实现。", file=sys.stderr)
     return None
+
+
+def _build_reflector() -> Reflector | None:
+    """Mirrors ``_build_diagnoser``'s contract: ``None`` means unusable config."""
+    from printpilot.llm import OpenAICompatibleClient, load_settings
+    from printpilot.reflection import Reflector
+
+    settings = load_settings()
+    if not settings.configured:
+        print(
+            "LLM 未配置：需要 .env 中的 OPENAI_API_KEY 与 PRINTPILOT_LLM_MODEL。",
+            file=sys.stderr,
+        )
+        return None
+    return Reflector(client=OpenAICompatibleClient(settings=settings))
+
+
+def _build_decider() -> LLMDecider | None:
+    """Mirrors ``_build_diagnoser``'s contract: ``None`` means unusable config."""
+    from printpilot.decision.llm import LLMDecider
+    from printpilot.llm import OpenAICompatibleClient, load_settings
+
+    settings = load_settings()
+    if not settings.configured:
+        print(
+            "LLM 未配置：需要 .env 中的 OPENAI_API_KEY 与 PRINTPILOT_LLM_MODEL。",
+            file=sys.stderr,
+        )
+        return None
+    return LLMDecider(client=OpenAICompatibleClient(settings=settings))
 
 
 def _run_eval(
@@ -242,20 +278,70 @@ def _run_rag(action: str, use_mock: bool) -> int:
     return EXIT_OK
 
 
-def _run_loop(seed: str) -> int:
+def _run_loop(seed: str, reflect: bool = False, decider: str = "rules") -> int:
     from printpilot.loop import LoopOutcome, demo_families, run_round
 
+    # LLM arms are built before any round runs: a misconfigured flag should
+    # cost zero simulations, not fail after five of them.
+    reflector: Reflector | None = None
+    if reflect:
+        reflector = _build_reflector()
+        if reflector is None:
+            return EXIT_NOT_IMPLEMENTED
+
+    pipeline: object | None = None
+    llm_decider: LLMDecider | None = None
+    if decider == "llm":
+        llm_decider = _build_decider()
+        if llm_decider is None:
+            return EXIT_NOT_IMPLEMENTED
+        from printpilot.workflow import build_pipeline
+
+        pipeline = build_pipeline(decider=llm_decider)
+
     outcomes: dict[LoopOutcome, int] = {}
+    gate: dict[str, int] = {}
     for family in demo_families():
-        result = run_round(family, case_id=f"demo-{family.fault.value}", seed=seed)
+        result = run_round(
+            family, case_id=f"demo-{family.fault.value}", seed=seed, pipeline=pipeline
+        )
         print(result.summary())
         print(f"  真实故障 {family.fault.value}")
+        if reflector is not None:
+            _reflect_round(reflector, result)
         print()
         outcomes[result.outcome] = outcomes.get(result.outcome, 0) + 1
+        ruling = result.verdict.decision.value
+        gate[ruling] = gate.get(ruling, 0) + 1
 
     print("汇总：" + "，".join(f"{k.value} {v}" for k, v in sorted(outcomes.items())))
     print("质量由独立评估器判定——它只看遥测，不知道注入了什么故障、也不知道改了什么。")
+    if llm_decider is not None:
+        tally = "，".join(f"{k} {v}" for k, v in sorted(gate.items()))
+        print(f"门禁对 LLM 提案的裁决：{tally}——提议与放行之间隔着这道闸。")
+        if llm_decider.failures:
+            print(f"决策调用失败 {llm_decider.failures} 轮（已自动升级人工）。", file=sys.stderr)
+    if reflector is not None:
+        if reflector.failures:
+            print(f"复盘失败 {reflector.failures} 轮（传输错误，未产卡片）。", file=sys.stderr)
+        print("候选卡片在 knowledge/candidate_cases/ 隔离区，审批流程见 knowledge/README.md。")
     return EXIT_OK
+
+
+def _reflect_round(reflector: Reflector, result: LoopResult) -> None:
+    """Reflection sees ``result`` only — the injected fault printed above it
+    goes to the human watching the demo, never into the model's record."""
+    from printpilot.reflection import write_candidate
+
+    card = reflector(result)
+    if card is None:
+        print("  复盘    调用失败，本轮无候选卡片", file=sys.stderr)
+        return
+    path = write_candidate(card)
+    if path is None:
+        print(f"  复盘    候选已存在（{card.id}），未覆盖")
+    else:
+        print(f"  复盘    候选卡片 → {path}")
 
 
 def _run_llm_check(show_models: bool) -> int:
@@ -411,6 +497,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_loop = sub.add_parser("loop", help="闭环演示：诊断→决策→门禁→执行→重打印→独立评分")
     p_loop.add_argument("--seed", default="demo", help="仿真种子，两轮共用以隔离参数效应")
+    p_loop.add_argument(
+        "--reflect",
+        action="store_true",
+        help="每轮 LLM 复盘产出候选知识卡片，只写 knowledge/candidate_cases/ 隔离区",
+    )
+    p_loop.add_argument(
+        "--decider",
+        choices=["rules", "llm"],
+        default="rules",
+        help="决策节点实现；llm 为消融臂——LLM 提议，门禁照常裁决并统计拦截",
+    )
 
     p_llm = sub.add_parser("llm-check", help="实测所配置端点的连通性与结构化输出能力")
     p_llm.add_argument("--models", action="store_true", help="打印完整可用模型列表")
@@ -459,7 +556,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         case "rag":
             return _run_rag(args.action, args.mock)
         case "loop":
-            return _run_loop(args.seed)
+            return _run_loop(args.seed, args.reflect, args.decider)
         case "llm-check":
             return _run_llm_check(args.models)
         case "skills":
