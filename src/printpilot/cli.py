@@ -9,6 +9,7 @@ path documented in the README.
 from __future__ import annotations
 
 import argparse
+import io
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -423,6 +424,18 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    # This tool prints Chinese. A Windows stream outside a UTF-8 code page —
+    # GitHub's runners pipe stdout as cp1252 — cannot encode it and dies with
+    # UnicodeEncodeError, which is how the first public CI run failed. A CJK
+    # Windows install masks this (GBK encodes the output), so it never shows
+    # on the machine the tool was written on. Reconfigure rather than crash.
+    for stream in (sys.stdout, sys.stderr):
+        if isinstance(stream, io.TextIOWrapper) and stream.encoding.lower() not in (
+            "utf-8",
+            "utf8",
+        ):
+            stream.reconfigure(encoding="utf-8")
+
     parser = build_parser()
     args = parser.parse_args(argv)
 

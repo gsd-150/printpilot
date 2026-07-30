@@ -131,3 +131,20 @@ def test_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
 def test_rejects_unknown_command() -> None:
     with pytest.raises(SystemExit):
         main(["nope"])
+
+
+def test_chinese_output_survives_a_cp1252_stdout(monkeypatch: pytest.MonkeyPatch) -> None:
+    """GitHub's Windows runners pipe stdout as cp1252, which cannot encode this
+    tool's Chinese output — the first public CI run died on exactly that. A CJK
+    Windows install never shows the problem, so only this test guards it."""
+    import io
+    import sys
+
+    raw = io.BytesIO()
+    cp1252 = io.TextIOWrapper(raw, encoding="cp1252")
+    monkeypatch.setattr(sys, "stdout", cp1252)
+
+    assert main(["info"]) == EXIT_OK
+
+    cp1252.flush()
+    assert "里程碑" in raw.getvalue().decode("utf-8")
